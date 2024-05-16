@@ -6,6 +6,10 @@
 #include <vector>
 #include <fstream>
 #include <algorithm>
+#include <iostream>
+#include <filesystem>
+namespace fs = std::filesystem;
+
 #include "ErrorHandler.h"
 
 #define ENTITY_SIZE_NAME (32)
@@ -18,6 +22,8 @@
 #define TABLE_EXT ".tab"
 #define DIRECTORY_FOR_TABLES "FolderTables/"
 
+
+vector<string> ListTables();
 
 using namespace std;
 
@@ -78,7 +84,7 @@ private:
     /*sem_t semaforo: TODO em proximas edições? */
 
     fstream streamTable;//ponteiro para leitura de arquivos
-    string _tablename;
+    string _tablename;  //Nome de Tabela
     size_t _totalRows;  //define o total e linha de dados da Tabela
     size_t _headerOffset;
     v_entity _entity;  // Classificacao do tipo de Dados
@@ -86,6 +92,7 @@ private:
 
     void OpenTable(bool is_readMode = false);
     void CloseTable();
+    void Delete();
 
     public: 
     
@@ -100,28 +107,20 @@ private:
 
     void write(); // escreve no arquivo de table
     void read();
-    void Delete();
 
-
-    string   get_name(bool fullName = false) const; // retorna o nome da tabela
-    size_t   get_offset_row(size_t idx) const;      // retorna o valor de offset para um idx
+    string   get_name(bool fullName = false) const;       //retorna o nome da tabela
+    size_t   get_offset_row(size_t idx) const;            //retorna o valor de offset para um idx
     size_t   get_numRows() const;
-    v_entity get_entities() const;                  // copia as propriedades de entidade
-    size_t   get_offset() const;                    // retorna o total de offset para o final do arquivo
-    size_t   get_sizeHeader() const;                //retorna o tamanho do cabeçalho(info de metadados)
-
-
+    v_entity get_entities() const;                        //copia as propriedades de entidade
+    size_t   get_offset() const;                          //retorna o total de offset para o final do arquivo
+    size_t   get_sizeHeader() const;                      //retorna o tamanho do cabeçalho(info de metadados)
+    int get_rowOffset() const;                            //retorna o comprimento de uma linha de dados
+    size_t total_entities() const {return _entity.size();}//retorna o total de entidades do banco
 
     void set_name(string Name){_tablename = Name;};
     void set_entities(v_entity entity){_entity = entity;};
     void set_totalRows(size_t rows){_totalRows = rows;};
-    void set_headerOffset(size_t _headerOffset){_headerOffset = _headerOffset;};
-
-    
-     //retorna o total de entidades do banco
-    size_t total_entities() const {return _entity.size();}
-    int get_rowOffset() const;         //retorna o comprimento de uma linha de dados
-
+    void set_headerOffset(size_t offset){_headerOffset = offset;};
 
     //incrementa em mais um o total de elementos no metadado
     void increase_elements(){this->_totalRows+=1;};

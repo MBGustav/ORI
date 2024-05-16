@@ -21,13 +21,13 @@ void write()
     // Cria a Tabela e sua configuracao - e nao apague! :D
     
 
-
     SQLTable Table("Test", 
     {
         {"NOME",STRING}, 
         {"IDADE",INT},
         {"QUANTIDADE",INT}, 
-        {"CLIENTE",BOOL}
+        {"NOME_CLIENTE",STRING},
+        {"ID_CLIENTE",INT}
     }, false);
 
     // data_t d[] = 
@@ -64,11 +64,11 @@ void read()
 
 int main(int argc, char **argv)
 {
-
+    vector<string> str_list = ListTables();
+    
     write();
 
     read();
-
     return 0;
 }
 

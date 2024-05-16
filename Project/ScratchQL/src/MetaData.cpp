@@ -19,7 +19,15 @@ string GenerateFileName(string FileName = "temp_table")
 
     return output_name + string(TABLE_EXT);
 }
-
+//List all tables existents and still exists
+vector<string>ListTables()
+{
+    vector<string> ans;
+    for(const auto &entry : fs::directory_iterator(DIRECTORY_FOR_TABLES))
+        ans.push_back(entry.path().filename());
+    
+    return ans;
+}
 
 
 //create a Metadata from Table already knowing the type
