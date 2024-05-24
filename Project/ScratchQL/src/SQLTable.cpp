@@ -5,19 +5,6 @@
 #include "MetaData.h"
 
 
-string format_print(data_t val2print)
-{   
-    DataType tp = val2print.tp;
-    switch(tp)
-    {
-        case STRING:  return val2print.value_str;
-        case INT   :  return to_string(val2print.value_int);
-        case FLOAT :  return to_string(val2print.value_float);
-        case BOOL  :  return (val2print.value_bool ? "True" : "False");
-        default: Type_error();
-    }
-    return "";
-}
 
 
 
@@ -76,12 +63,12 @@ void SQLTable::showTable()
     
     pretty_entities(ent);
     
-    // for(int row = 0; row < min(Rows, (size_t) TOTAL_DATA_DISPLAY); row++)
-    // {
-    //     vector<data_t> rowData = this->readRow(row);
-    //     pretty_line(rowData);
+    for(int row = 0; row < min(Rows, (size_t) TOTAL_DATA_DISPLAY); row++)
+    {
+        vector<data_t> rowData = this->readRow(row);
+        pretty_line(rowData);
 
-    // }
+    }
 
     std::cout << "Rows Affected: " << _metadata.get_numRows() <<endl;
     std::cout.flags(prevFormat);
@@ -90,11 +77,14 @@ void SQLTable::showTable()
 
 
 
-bool  SQLTable::insertRow(vector<data_t>Data)
-{
-    return false;    
+bool SQLTable::insertRow(vector<data_t>Data)
+{//O metadaData deve lidar com a manipulacao de arquivos
+    return _metadata.insert(Data);    
 }
+
 vector<data_t> SQLTable::readRow(size_t idx)
 {
-    return vector<data_t>();
+    const size_t itrElements = _metadata.get_numRows(); 
+        
+    return _metadata.read_row(idx);
 }

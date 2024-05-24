@@ -18,3 +18,4 @@ set(SQL_SOURCES
 # Link Files with the project
 add_library(${proj_name} STATIC ${SQL_SOURCES})
 
+# Create a TestFile

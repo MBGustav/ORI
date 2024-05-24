@@ -12,6 +12,13 @@ void inline Name_error()
     exit(EXIT_FAILURE);   
 }
 
+void inline Size_error()
+{
+    cerr << "Size doesn't Match!"<<endl;
+    exit(EXIT_FAILURE); 
+}
+
+
 void inline File_error()
 {
     cerr << "File Not Opened!"<<endl;

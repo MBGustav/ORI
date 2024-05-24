@@ -1,6 +1,6 @@
 #include <iostream>
 #include <filesystem>
-
+#include <vector>
 #include "SQLTable.h"
 
 using namespace std;
@@ -24,32 +24,28 @@ void write()
     SQLTable Table("Test", 
     {
         {"NOME",STRING}, 
+        {"NOME_CLIENTE",STRING},
         {"IDADE",INT},
         {"QUANTIDADE",INT}, 
-        {"NOME_CLIENTE",STRING},
         {"ID_CLIENTE",INT}
     }, false);
 
-    // data_t d[] = 
-    // {
-    //     {STRING, "Gustavo"},
-    //     {INT, 28},
-    //     {INT, 100},
-    //     {BOOL, 0}
-    // };
+    data_t d[] = 
+    {
+        {STRING, "Gustavo"},
+        {STRING, "UFScar."},
+        {INT, 25},
+        {INT, 100},
+        {INT, 127}
+    };
 
-    // delete Table;
+    std::vector<data_t> row;
+    for(auto &it :d)
+    {
+        row.push_back(it);
+    }
 
-
-// cout <<"Tipo " <<format_print(d[1]) << endl;
-//     vector<data_t> row;
-
-//     for(int i = 0; i < 4; i++)
-//     {
-//         row.push_back(d[i]);
-//     }
-
-    // cout <<( Table.insertRow(row) ? "added" : "not added") << endl;
+    cout <<( Table.insertRow(row) ? "added" : "not added") << endl;
     // string name(string(DIRECTORY_FOR_TABLES) + "test");
     // cout << (fileExists(name) ? "Yes" : "No")  << endl;
 }
@@ -59,7 +55,6 @@ void read()
     SQLTable Table("Test");
     // Table.showProp();
     Table.showTable();
-
 }
 
 int main(int argc, char **argv)
@@ -68,7 +63,7 @@ int main(int argc, char **argv)
     
     write();
 
-    read();
+    // read();
     return 0;
 }
 
