@@ -32,7 +32,8 @@ typedef enum open_mode{
     APPEND, 
     WRITE_NEW,
     READ_ONLY,
-    WRITE_START
+    WRITE_START,
+    READ_FROM_TABLE
 }open_mode;
 
 
@@ -71,9 +72,8 @@ int inline size_of(DataType value)
         case BOOL:   return sizeof(bool);
         case INT:    return sizeof(int);
         case FLOAT:  return sizeof(float);
-        case STRING:   return sizeof(char) * ENTITY_SIZE_NAME;
-        
-        default: exit(-1);
+        case STRING: return sizeof(char) * ENTITY_SIZE_NAME;
+        default:Type_error();
     }
 
     return -1;
@@ -135,12 +135,11 @@ private:
 
     void set_name(string Name){_tablename = Name;};
     void set_entities(v_entity entity){_entity = entity;};
-    void set_totalRows(size_t rows){_totalRows += rows; update_numRows();};
+    // atualiza o total de linhas presentes na tabela
+    void set_totalRows(size_t rows){_totalRows = rows; update_numRows();};
     void set_headerOffset(size_t offset){_headerOffset = offset;};
 
     
-    //reduz em menos um o total de elementos
-    void decrease_elements(){this->_totalRows = min( (size_t) 0, (_totalRows - 1) );};
 };
 
 #endif /*_METADATA_H_*/

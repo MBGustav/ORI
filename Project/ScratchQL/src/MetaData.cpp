@@ -71,15 +71,22 @@ size_t MetaData::get_sizeHeader() const
 {
     //posicao para indices
     
-    size_t items =  STR_SIZE + 
-                    4 * sizeof(size_t);
+    size_t first_info = sizeof(size_t) + // num_rows
+                        sizeof(size_t) + // size_header
+                        sizeof(size_t) + // row_offset 
+                        sizeof(size_t) ; // Total Entities
 
-    v_entity v = get_entities();
+
+    v_entity v = get_entities(); 
+    size_t items = 0;//sizeof(size_t); // 
     //Total de Entidades:
-    for(auto &it : v)
-        items += it.Name.size();
+    for(auto &it : v){
+        items += sizeof(DataType) + //type of content
+                 sizeof(size_t)   + //size of content 
+                 it.Name.size()   ;  //content
+    }
 
-    return items;
+    return first_info + items;
 }
 
 
@@ -87,7 +94,7 @@ void MetaData::OpenTable(open_mode OpenMode = READ_ONLY)
 {
     
     if(streamTable.is_open()) CloseTable();
-    std::ios_base::openmode FileMode = std::ios::binary;
+    std::ios::openmode FileMode = std::ios::binary;
     switch (OpenMode) {
         case APPEND: {
             FileMode |= std::ios::app | std::ios::out | std::ios::in;
@@ -105,16 +112,28 @@ void MetaData::OpenTable(open_mode OpenMode = READ_ONLY)
             FileMode |= std::ios::out | std::ios::in;
             break;
         }
+        default:{ //if not, open table as read
+            FileMode |= std::ios::in;
+            break;
+        }
     }
 
     // Modo de Abertura - leitura e escrita (TODO: otimizar para cada leitura)
     string fullName = get_name(true);
+    // Clear any existing flags
+    streamTable.clear();
     
     streamTable.open(fullName.c_str(), FileMode);
 
     // Verificar se o arquivo foi aberto corretamente
     if (!streamTable.is_open())
         File_error();
+
+    if(OpenMode == READ_FROM_TABLE){
+        size_t hdr = get_sizeHeader();
+        streamTable.seekg(hdr,ios::beg);
+
+    }
 }
 
 
@@ -136,16 +155,10 @@ void MetaData::read()
     size_t num_rows;
     
     OpenTable(READ_ONLY);
-
-    streamTable.seekg(ios_base::beg);
     
     //Save the name (and size of the name)
-    this->streamTable.read(reinterpret_cast<char*>(&table_name_sz),  sizeof(table_name_sz));
-    this->streamTable.read(&buffer[0],  table_name_sz);
-
-    // string table_name = string(buffer, table_name_sz);
-    // cout << table_name << endl;
-    // this->set_name(table_name);
+    // this->streamTable.read(reinterpret_cast<char*>(&table_name_sz),  sizeof(table_name_sz));
+    // this->streamTable.read(&buffer[0],  table_name_sz);
     
     //The total of elements in Tables
     this->streamTable.read(reinterpret_cast<char*>(&num_rows), sizeof(num_rows));
@@ -166,7 +179,7 @@ void MetaData::read()
     {
         size_t sz;
         DataType tp;
-        //write size and content
+        //write size, type and content
 
         streamTable.read(reinterpret_cast<char*>(&sz), sizeof(sz));
         streamTable.read(reinterpret_cast<char*>(&tp), sizeof(tp));
@@ -202,8 +215,8 @@ void MetaData::write()
     
     OpenTable(WRITE_NEW);
     //Save the name (and size of the name)
-    this->streamTable.write(reinterpret_cast< const char*>(&table_name_sz),  sizeof(table_name_sz));
-    this->streamTable.write(&table_name[0],  table_name_sz);
+    // this->streamTable.write(reinterpret_cast< const char*>(&table_name_sz),  sizeof(table_name_sz));
+    // this->streamTable.write(&table_name[0],  table_name_sz);
     
     //The total of elements in Tables
     this->streamTable.write(reinterpret_cast<const char*>(&num_rows), sizeof(num_rows));
@@ -226,11 +239,9 @@ void MetaData::write()
     {
         const size_t sz = v[i].Name.size();
         //write size and content
-        // cout << v[i].Name << ", ";
-        // cout << "sizes: " << sizeof(sz) << ", "<<  sizeof(v[i].type) <<endl;
         streamTable.write(reinterpret_cast<const char*>(&sz), sizeof(sz));
         streamTable.write(reinterpret_cast<const char*>(&(v[i].type)), sizeof(v[i].type));
-        streamTable.write(&(v[i].Name[0]), sz);
+        streamTable.write(&(v[i].Name[0]), sz);                
     }
 
     CloseTable();
@@ -270,23 +281,22 @@ string MetaData::get_name(bool fullName) const
 int MetaData::get_rowOffset() const
 {
     /*TODO: implementar futuramente uma funcao que usa cada campo para calc de offset*/
+    size_t ans = 0;
+    for(auto &it: get_entities()){
+        // cout << it.type << ", " << it.Name << ", "  << sizeof(it.type) << ", " <<size_of(it.type) <<endl;
+        ans += size_of(it.type) + sizeof(it.type);
+
+    }
     
-    // int ans = 0;
-    // for(auto &it: Entity)
-    //     // ans += size_of(it.type);
-    return total_entities();
+    return ans;
 }
 
 void MetaData::update_numRows()
 {
-    OpenTable(WRITE_START);
-    //skip name Table Name and size
-    const string table_name     = this->get_name();
-    const size_t  table_name_sz = table_name.size();
-    const int offset = sizeof(table_name_sz) + table_name_sz;
-    streamTable.seekp(offset, ios_base::beg);
+    OpenTable(WRITE_START);    
     const size_t num_rows = get_numRows();
     this->streamTable.write(reinterpret_cast<const char*>(&num_rows), sizeof(num_rows));
+    
     CloseTable();    
 }
 
@@ -299,19 +309,12 @@ bool MetaData::insert(vector<data_t> RowData)
 
     OpenTable(APPEND);
     
-    // Set the file to the end to append
-    streamTable.seekp(0, ios_base::end);
-    // streamTable.seekg(0, ios::end);
-    // std::cout <<"read: " << streamTable.tellg() <<", " <<streamTable.tellp() <<std::endl; 
-    // streamTable.seekp( streamTable.tellg()-1, ios::beg );
-
-
     for (size_t idx = 0; idx < get_entities().size(); idx++)
     {
         DataType type = RowData[idx].tp;
-        
-        streamTable.write(reinterpret_cast<char*>(&type),sizeof(type));
-        std::cout << format_print(RowData[idx])<< ", ";
+            // this->streamTable.write(reinterpret_cast<const char*>(&row_offset), sizeof(row_offset));
+        streamTable.write(reinterpret_cast<const char*>(&type),sizeof(type));
+        // std::cout << format_print(RowData[idx])<< ", ";
         switch (type) {
             case BOOL  : {
                 bool val_bool = RowData[idx].value_bool;
@@ -336,7 +339,7 @@ bool MetaData::insert(vector<data_t> RowData)
                 o tamanho e depois insiro a string
                 */ 
                 char *val_char = RowData[idx].value_str;
-                streamTable.write(reinterpret_cast<char*>(&val_char),sizeof(char)*STR_SIZE);
+                streamTable.write(reinterpret_cast<char*>(val_char),sizeof(char)*STR_SIZE);
                 break;
             }
             default: Type_error();
@@ -344,7 +347,7 @@ bool MetaData::insert(vector<data_t> RowData)
         }
     }
     
-    set_totalRows(1);
+    set_totalRows(get_numRows() + 1);
     CloseTable();
 
 
@@ -374,5 +377,67 @@ bool MetaData::validate_data_type(vector<data_t> RowData)
 
 vector<data_t>MetaData::read_row(size_t idx)
 {
-    OpenTable(READ_FROM_TABLE)
+
+    const size_t totalEnt = total_entities();
+    const size_t numRows  = get_numRows();
+    const size_t offset   = get_rowOffset();  
+    //Constraint
+    if(numRows < idx)
+        bound_error();    
+
+    OpenTable(READ_FROM_TABLE);
+    
+    streamTable.seekg(idx*get_rowOffset(),std::ios::cur);
+    // std::cerr << "Pointers stoped at: " 
+    //         << streamTable.tellg() << ", "
+    //         << streamTable.tellp() << std::endl;
+
+    vector<data_t>vec(totalEnt);
+
+    for(int i =0 ; i < totalEnt; i++)
+    {
+        DataType tp;
+        streamTable.read(reinterpret_cast<char*>(&tp),sizeof(tp));
+        vec[i].tp = tp;
+        switch (tp)
+        {
+            case BOOL  : {
+            bool val_bool = vec[i].value_bool;
+            streamTable.read(reinterpret_cast<char*>(&val_bool),sizeof(bool));
+            break;
+        }
+        case INT   : {
+            int val_int;
+            streamTable.read(reinterpret_cast<char*>(&(val_int)),sizeof(val_int));
+            vec[i].value_int = val_int;
+            break;
+        }
+        case FLOAT : {
+            float val_float;
+            streamTable.read(reinterpret_cast<char*>(&val_float),sizeof(val_float));
+            vec[i].value_float = val_float;
+            break;
+        }
+        case STRING: {
+            // redimensiono a string?? TODO (verificar esse caso)
+            /*
+            posso guardar o tamanho da str, mantendo lixo nas 
+            posicoes nao utilizadas. Insiro um byte que especifica
+            o tamanho e depois insiro a string
+            */ 
+            char *val_char = vec[i].value_str;
+            streamTable.read(reinterpret_cast<char*>(val_char),sizeof(char)*STR_SIZE);
+            break;
+        }
+            default:{
+                // std::cerr << "[ERROR]: Pointers stoped at: " 
+                //           << streamTable.tellg() << ", "
+                //           << streamTable.tellp() << std::endl;
+                Type_error();
+            } 
+        }
+
+    }
+    
+    return vec;
 }

@@ -23,12 +23,13 @@ void write()
 
     SQLTable Table("Test", 
     {
-        {"NOME",STRING}, 
-        {"NOME_CLIENTE",STRING},
-        {"IDADE",INT},
-        {"QUANTIDADE",INT}, 
-        {"ID_CLIENTE",INT}
+        {"NOME",STRING},         //4,3 
+        {"NOME_CLIENTE",STRING}, //12,3
+        {"IDADE",INT},           //5,1
+        {"QUANTIDADE",INT},      //10,1
+        {"ID_CLIENTE",INT}       //10,1
     }, false);
+    
 
     data_t d[] = 
     {
@@ -39,13 +40,26 @@ void write()
         {INT, 127}
     };
 
-    std::vector<data_t> row;
-    for(auto &it :d)
+    data_t d1[] = 
     {
+        {STRING, "Ciclano"},
+        {STRING, "UFBA"},
+        {INT, 30},
+        {INT, 120},
+        {INT, 18}
+    };
+
+
+    std::vector<data_t> row, row1;
+    for(auto &it :d)
         row.push_back(it);
-    }
+    
+    for(auto &it :d1)
+        row1.push_back(it);
 
     cout <<( Table.insertRow(row) ? "added" : "not added") << endl;
+    
+    cout <<( Table.insertRow(row1) ? "added" : "not added") << endl;
     // string name(string(DIRECTORY_FOR_TABLES) + "test");
     // cout << (fileExists(name) ? "Yes" : "No")  << endl;
 }
@@ -63,7 +77,7 @@ int main(int argc, char **argv)
     
     write();
 
-    // read();
+    read();
     return 0;
 }
 
