@@ -9,10 +9,13 @@ set(proj_name ScratchQL_lib)
 include_directories(include)
 
 # Integrate all .cpp files
-set(SQL_SOURCES
-    "src/MetaData.cpp"
-    "src/SQLTable.cpp"
-    "include/ErrorHandler.h"
+set(SQL_SOURCES 
+"src/DataInterface.cpp"
+"src/Date.cpp"
+"src/DateHandler.cpp"
+"src/FloatHandler.cpp"
+"src/IntHandler.cpp"
+"src/StringHandler.cpp"
 )
 
 # Link Files with the project
