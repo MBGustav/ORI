@@ -18,7 +18,7 @@ class DataInterface
 {
     private:
     public:
-    ~DataInterface();
+    ~DataInterface(){};
 
     virtual size_t bin_size() = 0; //return total size for save/read
     virtual DataType read_DataType() = 0; // return type of data

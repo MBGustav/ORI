@@ -31,7 +31,7 @@ StringHandler::~StringHandler(){}
 
 size_t StringHandler::bin_size(){return std::min(static_cast<size_t>(STR_MAX_SIZE), _data.size());}
 
-DataType StringHandler::read_DataType(){}
+DataType StringHandler::read_DataType(){ return DATE;}
 
 string StringHandler::toString(){return string(_data);}
 

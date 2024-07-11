@@ -105,13 +105,14 @@ void FloatHandlerTest()
     FloattestParseString();
 }
 
-int main() {
-    IntHandlerTest();
+
+bool DataInterface_test()
+{
+    IntHandlerTest();  
     FloatHandlerTest();
+    return true;
+}
+
     // std::cout << test_StringHandler() << std::endl;
     // std::cout << test_DataHandler() << std::endl;
 
-
-
-    return 0;
-}

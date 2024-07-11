@@ -37,19 +37,25 @@ include_directories(ScratchQL/include)
 
 # Folder where we store the Tables
 include_directories(FolderTables)
-
-add_executable(main main.cpp)
-# set_property(TARGET main PROPERTY CXX_STANDARD 17)
-
-# Set binary reference execution
-set_target_properties(main
+add_executable(unit_test "ScratchQL/unit_tests/unit_test.cpp")
+set_target_properties(unit_test
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY
          "${CMAKE_CURRENT_SOURCE_DIR}")
+         target_link_libraries(unit_test PRIVATE
+         ScratchQL_lib
+)
 
-target_link_libraries(main PRIVATE
-                    ScratchQL_lib
+# add_executable(main main.cpp)
+# set_property(TARGET main PROPERTY CXX_STANDARD 17)
+# Set binary reference execution
+# set_target_properties(main
+        # PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+        #  "${CMAKE_CURRENT_SOURCE_DIR}")
+
+# target_link_libraries(main PRIVATE
+                    # ScratchQL_lib
                     # Interpreter_lib
-)           
+# )           
 
 
 
