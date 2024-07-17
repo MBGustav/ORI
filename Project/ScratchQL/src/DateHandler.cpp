@@ -22,9 +22,11 @@ DateHandler::DateHandler(int month, int day, int year)
 }
 DateHandler::DateHandler(){}
 
-bool DateHandler::is_valid(int day, int month, int year)
+DataType DateHandler::read_DataType(){return DataType::DATE;}
+
+DateHandler::DateHandler(Date &date): _date(date)
 {
-    return true;
+
 }
 
 void DateHandler::NewDate(int day, int month, int year)
@@ -38,8 +40,6 @@ DateHandler::~DateHandler(){}
 
 size_t DateHandler::bin_size(){return _date.size();}
 
-DataType DateHandler::read_DataType(){return DATE;}
-
 string DateHandler::toString(){return _date.toString();}
 
 void DateHandler::parseString(string &data){
@@ -47,5 +47,13 @@ void DateHandler::parseString(string &data){
     _date.parseString(data);
 }
 
+
+void DateHandler::fwrite(std::fstream &file){
+    file.write(reinterpret_cast<const char*>(&_date), sizeof(_date));
+}
+
+void DateHandler::fread(std::fstream &file){
+    file.read(reinterpret_cast<char*>(&_date), sizeof(_date));
+}
 
 #endif /*_DATAHANDLER_H_*/

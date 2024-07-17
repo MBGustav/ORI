@@ -4,7 +4,9 @@
 #include "DataInterface.h"
 #include "Date.h"
 #include <string>
+#include <fstream>
 using std::string;
+
 
 class DateHandler: public DataInterface
 {
@@ -12,6 +14,7 @@ private:
     Date _date;
 public:
     DateHandler();
+    DateHandler(Date &date);
     DateHandler(string &input);
     DateHandler(int month, int day, int year);
     ~DateHandler();
@@ -24,6 +27,9 @@ public:
     virtual DataType read_DataType();
     virtual string toString();
     virtual void parseString(string &data);
+
+    virtual void fwrite(std::fstream &file);
+    virtual void fread(std::fstream &file);
 };
 
 

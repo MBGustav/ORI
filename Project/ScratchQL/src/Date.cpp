@@ -7,10 +7,10 @@ Date::Date(int day, int month, int year):
 }
 Date::Date(): d(1), m(1), y(1) {}
 
-Date Date::operator=(const Date& date)
-{
-    set_date(date.get_month(), date.get_day(), date.get_year());
-}
+// Date Date::operator=(const Date& date)
+// {
+//     set_date(date.get_month(), date.get_day(), date.get_year());
+// }
 
 
 void Date::set_date(int month, int day, int year)
@@ -32,6 +32,8 @@ bool Date::is_valid(int _mes, int _dia, int _ano)
     int feb_add = 0;
     if(is_bissext(_ano) && _mes == 2) feb_add = 1;
     bool date_OK = (0 <= _ano) && (0 < _mes && _mes <=12) && (0<= _dia && _dia <= day_month[_mes -1]+feb_add);
+
+    return date_OK;
 }
 
 size_t Date::size() const{return sizeof(this->y)+sizeof(this->d) + sizeof(this->m);};  

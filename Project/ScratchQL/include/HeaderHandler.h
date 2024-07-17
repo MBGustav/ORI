@@ -31,17 +31,18 @@ bool table_exists(const std::string& filename);
 
 typedef struct EntityProperties{
     string name;
-    DataType type;
-    size_t offset;
-    EntityProperties(string _name="", DataType _type=TYPE_NULL): 
-        name(_name), type(_type), offset(0){};
+    size_t idx_col;
+    DataType type; 
+    size_t offset; // ??
+    EntityProperties(string _name="", DataType _type=TYPE_NULL,size_t id_col=0): 
+        name(_name), type(_type),idx_col(id_col), offset(0){};
 }EntityProperties;
 
 
 class HeaderHandler{
 private:
     fstream file_ptr;
-    mutex &file_mtx_;// std::shared_mutex& fileMutex_; ??? TODO
+    // mutex &file_mtx_;// std::shared_mutex& fileMutex_; ??? TODO
     string Filename;
     
     //melhor seria um array ou um map ? acesso por indice e por nome
@@ -54,8 +55,8 @@ private:
 
 
 public:
-    HeaderHandler(string &Filename, mutex &file_mtx_); //Constructor for already existent file
-    
+    HeaderHandler(string &Filename); //Constructor for already existent file
+    HeaderHandler( HeaderHandler& header);
     ~HeaderHandler();
 
     void read_header();
