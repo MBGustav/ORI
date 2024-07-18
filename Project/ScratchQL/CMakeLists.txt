@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.22)
 
 
 # Setting a name..
@@ -11,7 +12,7 @@ include_directories(include)
 # Integrate all .cpp files
 set(SQL_SOURCES 
 "src/DataInterface.cpp"
-"src/Date.cpp"
+# "src/Date.cpp"
 "src/DateHandler.cpp"
 "src/FloatHandler.cpp"
 "src/IntHandler.cpp"

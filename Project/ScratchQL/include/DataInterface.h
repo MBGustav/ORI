@@ -3,9 +3,12 @@
 
 #include <string>
 using std::string;
+// #include "IntHandler.h"
+// #include "FloatHandler.h"
+// #include "DateHandler.h"
+// #include "StringHandler.h"
 
-
-#define STR_MAX_SIZE (35)
+#define STR_MAX_SIZE (32)
 
 typedef enum{
     TYPE_NULL,
@@ -15,11 +18,12 @@ typedef enum{
     DATE
 }DataType;
 
+
 class DataInterface
 {
     public:
-    ~DataInterface(){};
-    
+    virtual ~DataInterface(){};
+
     virtual size_t bin_size() = 0; //return total size for save/read
     virtual DataType read_DataType() = 0; // return type of data
     virtual string toString() = 0; 
@@ -30,6 +34,7 @@ class DataInterface
     virtual void fread(std::fstream &file)  = 0;
 
 };
+
 
 
 

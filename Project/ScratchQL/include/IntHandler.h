@@ -10,6 +10,7 @@ private:
     int _data;
 public:
     IntHandler(int _data = 0);
+    IntHandler(std::fstream &file);
 
     ~IntHandler();
     void set_value(int val);
@@ -24,6 +25,8 @@ public:
 };
 
 IntHandler::IntHandler(int int_num): _data(int_num){}
+
+IntHandler::IntHandler(std::fstream &file){fread(file);}
 
 IntHandler::~IntHandler(){}
 
@@ -40,13 +43,18 @@ string IntHandler::toString(){ return std::to_string(get_value());}
 void IntHandler::parseString(string &data){set_value(stoi(data));}
 
 
-void IntHandler::fwrite(std::fstream &file){
-    file.write(reinterpret_cast<char*>(this), sizeof(*this));
+void IntHandler::fwrite(std::fstream &file) {
+    if (!file.is_open()) {
+        throw std::runtime_error("File not open");
+    }
+    file.write(reinterpret_cast<char*>(&_data), sizeof(_data));
 }
 
 void IntHandler::fread(std::fstream &file) {
-    file.read(reinterpret_cast<char*>(this), sizeof(*this));
+    if (!file.is_open()) {
+        throw std::runtime_error("File not open");
+    }
+    file.read(reinterpret_cast<char*>(&_data), sizeof(_data));
 }
-
 
 #endif /*_INTHANDLER_H_*/

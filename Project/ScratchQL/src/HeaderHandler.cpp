@@ -36,7 +36,6 @@ void HeaderHandler::write_header()
     total_entities = get_total_entities();
     file_ptr.write(reinterpret_cast<char*>(&total_entities), sizeof(total_entities));
     
-    
     // iterate over all entitties types
     EntityProperties *datatype_arr = new EntityProperties[total_entities];
     
@@ -94,27 +93,20 @@ void HeaderHandler::read_header()
     
     // iterate over all entitties types
     DataType *datatype_arr = new DataType[total_entities];
-
-    // for(size_t itr = 0; itr < total_entities; itr++){
     file_ptr.read(reinterpret_cast<char*>(&datatype_arr[0]), total_entities * sizeof(DataType));
-    // }
-
-    //iterate over all entities names
     
+    //iterate over all entities names
     for(size_t itr = 0; itr < total_entities; itr++){
-        file_ptr.read(reinterpret_cast<char*>(&size_name), sizeof(size_name));
         
+        file_ptr.read(reinterpret_cast<char*>(&size_name), sizeof(size_name));
         char *tmp = new char[size_name+1]; //to load the class
         file_ptr.read(&tmp[0], size_name);
         tmp[size_name] = '\0';
-
         Entities[tmp] = EntityProperties(tmp, datatype_arr[itr]);
-
         delete[] tmp;
     }
 
     delete []  datatype_arr;
-
     file_ptr.close();
 }
 
@@ -136,12 +128,21 @@ vector<EntityProperties> HeaderHandler::get_EntityList()
     return ent_arr;
 }
 
-HeaderHandler::HeaderHandler(string &Filename, mutex &file_mtx_): 
-              Filename(Filename), file_mtx_(file_mtx_)
+HeaderHandler::HeaderHandler(string &Filename): 
+              Filename(Filename)
 {
     if(table_exists(Filename)){
         read_header();
     }
+}
+
+HeaderHandler::HeaderHandler( HeaderHandler& header)
+{  
+    
+    set_offset_header(header.get_offset_header());
+    set_offset_row(header.get_offset_row());
+    set_total_elements(header.get_total_elements());
+
 }
 
 HeaderHandler::~HeaderHandler(){}

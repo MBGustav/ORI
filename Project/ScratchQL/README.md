@@ -12,7 +12,33 @@ And the data Structure
 
 
 
-## WHAT TO DO? 
 
-[] implement an update/alter table that copies the values for a new value.
-[] 
+
+## Next Steps
+
+### Ideas for _TableHandler_
+1. A Class to File(making it more easier to read/write rows and collumns with the same pointer)[FileHandler]
+
+2. A structure to deal with primary/secondary/n-ary keys, and TableHandler just intermediate the situation.
+
+3. 
+
+
+
+Here are some brainstorming ideas for the project, focusing on organizing all the data and addressing class implementation issues.
+
+
+|IMPLEMENTED ?| Unit-Tested ? | Descr.|
+|-|-|-|
+|✅| -| Binary Scheme Organization to read/write file|
+|❌| -| **(just an idea)** mutex to control and manage file registry|
+|❌|❌| DataInterface Operations(+,++,-, --, *, / and others)|
+|✅|✅| DataInterface class and its abstractions|
+|✅|✅| HeaderHandler class |
+|❌|❌| TableHandler class**|
+
+
+<!-- ✅ -->
+<!-- ❌ -->
+
+** I could do an data structure related to Threes and List/Vectorized. This idea allows me to improve from both sides: search and inclusion/exclusion. With this, data selection/filtering becomes fast and pratical. However, how should I do it ? 

@@ -45,7 +45,7 @@ bool testReadHeader() {
     std::string testFilename = "test_table.tab";
 
     createTestFile(testFilename);
-    HeaderHandler headerHandler(testFilename, testMutex);
+    HeaderHandler headerHandler(testFilename);
     
     bool success = true;
     success &= (headerHandler.get_total_elements() == 3);
@@ -73,7 +73,7 @@ bool testWriteHeader() {
 
     createTestFile(testFilename);
     
-    HeaderHandler WriteHeader(testFilename, testMutex);
+    HeaderHandler WriteHeader(testFilename);
 
     // Modify header information
     WriteHeader.set_total_elements(5);
@@ -84,7 +84,7 @@ bool testWriteHeader() {
     
 
     // Read back the file to verify changes
-    HeaderHandler newHeaderHandler(testFilename, testMutex);
+    HeaderHandler newHeaderHandler(testFilename);
 
     bool success = true;
     success &= (newHeaderHandler.get_total_elements() == 5);
