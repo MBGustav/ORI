@@ -16,10 +16,13 @@
 #include "StringHandler.h"
 #include "DateHandler.h"
 
+
 using std::mutex, std::multimap, std::array;
 using std::ios, std::to_string;
 
 #define SIZE_TABLE_BUFFER (100)
+#define MAX_DISPLAY_ROW (10)
+
 
 DataInterface *dt_alloc(DataType type, string data="")
 {
@@ -102,6 +105,7 @@ public:
     void display();
 
     size_t total_items();
+    size_t bin_fsize();
     size_t row_offset();    
 
     void write_row(vector<DataInterface*> row);
@@ -154,7 +158,7 @@ vector<DataInterface*> SimpleTableHandler::read_row(size_t idx)
     // std::cout << "offset: " << row_offset() << std::endl;
     // std::cout << "tellg:  " << file_ptr.tellg() << std::endl;
     // std::cout << "RRN: " << idx*row_offset() << std::endl;
-
+    
     vector<DataInterface*> row(total_entities);
 
     StringHandler strhandler;
@@ -174,22 +178,59 @@ vector<DataInterface*> SimpleTableHandler::read_row(size_t idx)
 
 void SimpleTableHandler::display(){
     
-    
+
     vector<DataInterface*> row;
+    vector<vector<DataInterface*>> vis_table;
+    vector<size_t> size_ent(total_entities, 0);
+
+    
+
+    size_t total = total_items();
+
+    auto pretty_sep = [&] () {
+        for(int i = 0; i < size_ent.size(); i++)
+            std::cout << '+' << std::setfill('-') << std::setw(size_ent[i]+2) << "";
+        std::cout << "+\n";
+        // std::cout<< std::setfill('-') << std::setw(1) << "+" << std::endl;
+    };
+
+    auto pretty_topic = [&] () {
+        pretty_sep();
+        for(int i = 0; i < size_ent.size(); i++)
+            std::cout << '|'<< std::setfill(' ') << std::setw(size_ent[i]+2) << prop[i].name;
+        std::cout << "|\n";
+        pretty_sep();
+    };
+
+    auto pretty_line = [&] (int idx) {
+        for(int i = 0; i < size_ent.size(); i++)
+            std::cout << '|'<< std::setfill(' ') << std::setw(size_ent[i]+2) << vis_table[idx][i]->toString();
+        std::cout << "|\n";
+    };
+    for(int i=0; i < size_ent.size();i++) size_ent[i] = std::max(size_ent[i], prop[i].name.size()+2);
 
     int idx =0;
-    while(file_ptr.peek() != EOF && idx < 2){
+    //Collect data
+    while(idx < std::min((size_t)MAX_DISPLAY_ROW, total)){
 
         row = read_row(idx++);
-        
-        // if(row.size() != 4){
-        //     std::cerr << "[ERROR] size differs\n";
-        //     break;
-        // }
-        for(int i = 0; i < 4; i++) std::cout << row[i]->toString() << "| ";
-        std::cout << "\n";
-    
+        if(row.size()!= total_entities) break;
+
+        vis_table.push_back(row);
+
+        for(int i=0; i < total_entities;i++) {
+            size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size()); 
+        }
     }
+    
+    //Print Data
+    
+    pretty_topic();    
+    int i = std::min((size_t) MAX_DISPLAY_ROW, total);
+        while(i--) pretty_line(i);
+    pretty_sep();
+
+    std::cout << "Total Rows: "<< total << std::endl;  
 }
 
 void SimpleTableHandler::read_file()
@@ -241,9 +282,10 @@ size_t SimpleTableHandler::total_items(){
 
     file_ptr.open(Filename.c_str(), std::ios::binary|std::ios::in|std::ios::ate);
 
-    if(file_ptr) {
-        std::fstream::pos_type size = file_ptr.tellg();
-        std::cout << Filename << " " << size << ", " << size/row_offset() << "\n";
+    if(file_ptr.good()) {
+        std::cout << "row_offset:" << row_offset()<< std::endl;
+        std::cout << "bin_fsize:" << bin_fsize()  << std::endl;
+        size_t size = bin_fsize()/row_offset();
         file_ptr.close();
         return size;
 
@@ -253,6 +295,15 @@ size_t SimpleTableHandler::total_items(){
 
 
     return -1;
+}
+size_t SimpleTableHandler::bin_fsize(){
+
+    file_ptr.open(Filename.c_str(), std::ios::binary|std::ios::in|std::ios::ate);
+    std::fstream::pos_type size = file_ptr.tellg();
+    std::cout << "size: " << size <<std::endl;
+
+    file_ptr.close();
+    return  size;
 }
 
 
