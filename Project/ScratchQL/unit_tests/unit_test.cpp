@@ -61,7 +61,7 @@ void test_SimpleTableHandler() {
     }
 
     if (test_passed) {
-        cout << "Test passed: all data matches" << endl;
+        cout << "[PASSED]: Reading and Writing File with success" << endl;
     }
 
     // Clean up

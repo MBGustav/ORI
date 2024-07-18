@@ -152,7 +152,7 @@ vector<DataInterface*> SimpleTableHandler::read_row(size_t idx)
     file_ptr.seekg(idx*row_offset(), ios::beg);
 
     // std::cout << "offset: " << row_offset() << std::endl;
-    // std::cout << "idx: " << idx << std::endl;
+    // std::cout << "tellg:  " << file_ptr.tellg() << std::endl;
     // std::cout << "RRN: " << idx*row_offset() << std::endl;
 
     vector<DataInterface*> row(total_entities);
@@ -162,11 +162,8 @@ vector<DataInterface*> SimpleTableHandler::read_row(size_t idx)
 
     for(int it = 0;it < total_entities; it++)
     {
-       
         row[it] = dt_alloc(prop[it].type);
         row[it]->fread(file_ptr);
-        // std::cout << "tellg "<< file_ptr.tellg() <<std::endl; 
-        // std::cout <<"to - " << row[it]->toString()<< "|"<<std::endl;
     }
     
     file_ptr.close();
