@@ -52,7 +52,6 @@ DataType StringHandler::read_DataType() { return DataType::STRING;}
 string StringHandler::toString()
 {
     if(!_data.data()) std::cout << "NULL access\n";
-
     return _data;
 }
 

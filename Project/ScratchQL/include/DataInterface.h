@@ -19,6 +19,8 @@ typedef enum{
 }DataType;
 
 
+// TODO : implement a virtual method that deals with binary --  better to search in three/ index
+
 class DataInterface
 {
     public:

@@ -58,11 +58,34 @@ DataInterface *dt_alloc(DataType type, string data="")
     return ptr;
 }
 
+size_t data_size(DataType type){
+    switch (type){
+        case DataType::DATE:{
+            DateHandler d;
+            return d.bin_size();
+        }
+        case DataType::INT:{
+            IntHandler d;
+            return d.bin_size();
+        }
+        case DataType::STRING:{
+            StringHandler d;
+            return d.bin_size();
+        }
+        case DataType::FLOAT:{
+            FloatHandler d;
+            return d.bin_size();
+        }
+
+        case DataType::TYPE_NULL:
+        default:
+            break;
+    }
+
+    throw std::runtime_error("[ERROR] Fail to figure out which type is");
+}
 //just for notation - deal with it later
 typedef string key_format;
-
-
-
 
 
 class SimpleTableHandler
@@ -80,13 +103,11 @@ private:
     //Store: p_key, s_key[0], s_key[1], s_key[2], s_key[3], s_key[4]
     multimap<key_format, size_t> map[4];
 
+
     vector<EntityProperties> prop;
 
-    // size_t get_total_elements() const{return this->header.get_total_elements();};
-    // size_t get_offset_header()  const{return this->header.get_offset_header();};
-    // size_t get_offset_row()     const{return this->header.get_offset_row();};
-    // size_t get_total_entities() const{return this->header.get_total_entities();}
-    
+    EntityProperties *primary_key;
+
 
 public:
 
@@ -95,7 +116,9 @@ public:
 
     ~SimpleTableHandler(){};
 
-    // bool valid_pkey(key_format pkey);
+    bool valid_pkey(key_format pkey);
+
+    vector<DataInterface*> read_pkey(key_format pkey);
     // bool valid_skey(key_format skey);
 
     void read_file();
@@ -108,8 +131,10 @@ public:
     size_t bin_fsize();
     size_t row_offset();    
 
+    EntityProperties get_entity(string name_entity) const;
+
     void write_row(vector<DataInterface*> row);
-    vector<DataInterface*> read_row(size_t row);
+    vector<DataInterface*> read_row(size_t row, bool is_RNN = false);
 
     bool check_write_row(vector<DataInterface*> row);
 
@@ -127,9 +152,13 @@ SimpleTableHandler::SimpleTableHandler(std::string Filename): Filename(Filename)
     prop.push_back(prop2);
     prop.push_back(prop3);
     prop.push_back(prop4);
+    
+    //set CPF as primary key
+    primary_key = &prop1;
+    std::cout << primary_key->idx_col;
+    // *primary_key = prop1;
 
 }
-
 
 void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
@@ -137,29 +166,23 @@ void SimpleTableHandler::write_row(vector<DataInterface*> row)
 
 
     for(int it = 0;it < row.size(); it++)
-    {
         row[it]->fwrite(file_ptr);
-    }
 
     file_ptr.close();
 }
 
-vector<DataInterface*> SimpleTableHandler::read_row(size_t idx)
+vector<DataInterface*> SimpleTableHandler::read_row(size_t idx, bool is_RRN)
 {
-    file_ptr.open(Filename.c_str(), ios::binary | ios::in);
 
     if (!file_ptr.is_open()) {
-        std::cerr << "[ERROR] Failed to open file\n";
-        return vector<DataInterface*>();
+        file_ptr.open(Filename.c_str(), ios::binary | ios::in);
+        // std::cerr << "[ERROR] Failed to open file\n";
+        // return vector<DataInterface*>();
     }
 
-    file_ptr.seekg(idx*row_offset(), ios::beg);
+    file_ptr.seekg(idx* (is_RRN ? 1 : row_offset()), ios::beg);
 
-    // std::cout << "offset: " << row_offset() << std::endl;
-    // std::cout << "tellg:  " << file_ptr.tellg() << std::endl;
-    // std::cout << "RRN: " << idx*row_offset() << std::endl;
-    
-    vector<DataInterface*> row(total_entities);
+    vector<DataInterface*> row(total_entities, nullptr);
 
     StringHandler strhandler;
     IntHandler ihandler;
@@ -175,17 +198,22 @@ vector<DataInterface*> SimpleTableHandler::read_row(size_t idx)
     return row;
 }
 
-
+EntityProperties SimpleTableHandler::get_entity(string name_entity) const{
+    
+    EntityProperties ans;
+    for(auto ptr: prop)
+        if(ptr.name == name_entity) return ptr;
+    throw std::runtime_error("[ERROR] File not opened, check if file really exists.");
+}
 void SimpleTableHandler::display(){
     
 
     vector<DataInterface*> row;
     vector<vector<DataInterface*>> vis_table;
     vector<size_t> size_ent(total_entities, 0);
-
-    
-
+   
     size_t total = total_items();
+    size_t total2print = std::min((size_t)MAX_DISPLAY_ROW, total);
 
     auto pretty_sep = [&] () {
         for(int i = 0; i < size_ent.size(); i++)
@@ -207,74 +235,79 @@ void SimpleTableHandler::display(){
             std::cout << '|'<< std::setfill(' ') << std::setw(size_ent[i]+2) << vis_table[idx][i]->toString();
         std::cout << "|\n";
     };
+
     for(int i=0; i < size_ent.size();i++) size_ent[i] = std::max(size_ent[i], prop[i].name.size()+2);
 
     int idx =0;
     //Collect data
-    while(idx < std::min((size_t)MAX_DISPLAY_ROW, total)){
+    while(idx < total2print){
 
         row = read_row(idx++);
         if(row.size()!= total_entities) break;
-
+        
         vis_table.push_back(row);
 
         for(int i=0; i < total_entities;i++) {
             size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size()); 
         }
     }
-    
+
     //Print Data
-    
     pretty_topic();    
-    int i = std::min((size_t) MAX_DISPLAY_ROW, total);
+    int i = std::max((size_t) 0, total2print);
         while(i--) pretty_line(i);
     pretty_sep();
-
     std::cout << "Total Rows: "<< total << std::endl;  
 }
 
-void SimpleTableHandler::read_file()
+void SimpleTableHandler::read_file() // TODO: fix it!
 {   
     if(!table_exists(Filename)){
-        std::cerr << "[ERROR] File dont exist!\n"; 
+        std::cerr << "[ERROR] File dont exist!\n";
     }
-    
-    const size_t offset = row_offset();
     size_t idx = 0;
-    IntHandler ihandler;
-    StringHandler strhandler;
-    
-    file_ptr.open(Filename.c_str(), ios::binary | ios::out);
+    int total = total_entities;
+    const size_t offset = row_offset();
+    size_t fsize =bin_fsize();
+    size_t RRN =0;
 
-    while(file_ptr)
-    {
-        size_t RRN = idx*offset;
+    std::cout << "[READ_FILE]\n";
+    std::cout << "fsize: " << fsize << std::endl;
+    std::cout << "total: " << total << std::endl;
+    std::cout << "offset: " << offset << std::endl;
 
-        for(int i =0; i < 4 ; i++){
-            switch (prop[i].type){
-                case DataType::STRING: {
-                    strhandler.fread(file_ptr);
-                    map[i].insert({strhandler.toString(), RRN});
-                }
-                case DataType::INT: {
-                    ihandler.fread(file_ptr);
-                    map[i].insert({ihandler.toString(), RRN});
-                }
-                default: 
-                    std::cerr << "[ERROR] Data Format not recognized\n";
-            }
-        }
-        idx++;
+    file_ptr.open(Filename.c_str(), ios::binary | ios::in);
+
+    DataInterface *dt = nullptr;
+    while(RRN < fsize){
+
+        if(file_ptr.tellg() == file_ptr.fail())
+            std::cout << "[ERROR] File error\n";
+
+        std::cout << "tellg: " << file_ptr.tellg() << std::endl;
+        std::cout << "RRN "  << RRN <<std::endl;
+
+        vector<DataInterface*> row = read_row(RRN, true);
+
+        for(int iCol = 0; iCol < total_entities; iCol++) 
+            map[iCol].insert({row[iCol]->toString(), RRN});
+
+        std::cout << "RRN : ";
+        for(auto itr : row) std:: cout <<itr->toString() << ", ";
+        std::cout << "\n";
+
+        RRN += offset;
+        
     }
-    
 }
 
 
 
 size_t SimpleTableHandler::row_offset(){
-    IntHandler h;
-    StringHandler f;
-    return 3*f.bin_size() + h.bin_size();
+    
+    size_t ans = 0;
+    for(auto ptr : prop) ans += data_size(ptr.type);
+    return ans;
 }
 
 
@@ -287,8 +320,8 @@ size_t SimpleTableHandler::total_items(){
         std::cout << "bin_fsize:" << bin_fsize()  << std::endl;
         size_t size = bin_fsize()/row_offset();
         file_ptr.close();
-        return size;
 
+        return size;
     }
 
     perror(Filename.c_str());
@@ -300,11 +333,35 @@ size_t SimpleTableHandler::bin_fsize(){
 
     file_ptr.open(Filename.c_str(), std::ios::binary|std::ios::in|std::ios::ate);
     std::fstream::pos_type size = file_ptr.tellg();
-    std::cout << "size: " << size <<std::endl;
 
     file_ptr.close();
     return  size;
 }
+
+
+bool SimpleTableHandler::valid_pkey(key_format key){
+    
+    int entity_idx = 0;
+
+    if(map[entity_idx].find(key) == map[entity_idx].end())
+        return false;
+    return true;
+}
+
+vector<DataInterface*> SimpleTableHandler::read_pkey(key_format key){
+
+    if(!valid_pkey(key))
+        return vector<DataInterface*>(total_entities, nullptr);
+
+    int p_idx = primary_key->idx_col;
+    
+
+    size_t RRN = map[0].find(key)->second;
+
+    return read_row(RRN, true);    
+}
+
+
 
 
 #endif /*SIMPLETABLEHANDLER_H*/

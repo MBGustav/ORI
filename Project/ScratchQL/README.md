@@ -14,6 +14,7 @@ And the data Structure
 
 
 
+
 ## Next Steps
 
 ### Ideas for _TableHandler_
@@ -21,7 +22,11 @@ And the data Structure
 
 2. A structure to deal with primary/secondary/n-ary keys, and TableHandler just intermediate the situation.
 
-3. 
+3. Busca pela chave primária (CPF)
+4. Busca por chave secundaria - CIDADE por exemplo. 
+    - implementa no começo sequencial.
+5. Implenentação de Inserção/Remoção - logica e fisica.
+
 
 
 
