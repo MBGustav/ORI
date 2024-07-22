@@ -21,6 +21,20 @@ def show_tables(table : Tabela):
 def send_data_to_cpp():
     messagebox.showinfo("Info", "Dados enviados para o backend em C++ (ainda não implementado).")
 
+def content_show_tables_page():
+    tk.Label(show_tables_frame, text="Página de Mostrar Tabelas").pack()
+    tk.Label(show_tables_frame, text="Digite o nome da tabela que deseja visualizar:").pack()
+    table_name_entry = tk.Entry(show_tables_frame)
+    table_name_entry.pack()
+    def show_table():
+        try:
+            table_name = table_name_entry.get()
+            table = Tabela(table_name, 0)
+            table.read_from_file()
+            show_tables(table)
+        except FileNotFoundError:
+            messagebox.showerror("Error", "Table not found.")
+    tk.Button(show_tables_frame, text="Mostrar tabela", command=show_table).pack()
 
 def cria_tabela(table_name_entry,num_columns_entry):
     table_name = table_name_entry.get()
@@ -52,19 +66,26 @@ def content_create_table_page():
 def after_create_table(tabela : Tabela):
     column_names = []
     data_types = []
+    left_frame = tk.Frame(create_table_frame)
+    left_frame.pack(side="left")
+    right_frame = tk.Frame(create_table_frame)
+    right_frame.pack(side="right")
+    current_frame = left_frame
     for i in range(tabela.num_colunas):
-        tk.Label(create_table_frame, text="Nome da coluna:").pack()
-        column_name = tk.Entry(create_table_frame)
+        current_frame = left_frame if i % 2 == 0 else right_frame
+        tk.Label(current_frame, text=f"Nome da coluna {i}:").pack()
+        column_name = tk.Entry(current_frame)
         column_name.pack()
         column_names.append(column_name)
-        tk.Label(create_table_frame, text="Tipo de dado:").pack()
-        data_type = tk.Entry(create_table_frame)
-        data_type.pack()
+        tk.Label(current_frame, text=f"Tipo de dado {i}:").pack()
+        data_type = tk.Entry(current_frame)
+        data_type.pack(fill="x")
         data_types.append(data_type)
     def add_columns():
         for name_entry, type_entry in zip(column_names, data_types):
             tabela.adicionar_parametro(name_entry.get(), type_entry.get())
         messagebox.showinfo("Info", "Colunas adicionadas com sucesso!")
+        tabela.save_to_file()
     
     # Botão para adicionar colunas
     tk.Button(create_table_frame, text="Adicionar colunas", command= add_columns).pack()
@@ -85,13 +106,13 @@ def content_inicial_page():
 
 window = tk.Tk()
 window.title("Table Management")
-window.geometry("400x700")
+window.geometry("800x700")
 window.resizable(False, False)
 window.configure(bg="white")
 
-create_table_frame = tk.Frame(window)
-show_tables_frame = tk.Frame(window)
-inicial_frame = tk.Frame(window)
+create_table_frame = tk.Frame(window, height=400, width=700)
+show_tables_frame = tk.Frame(window , height=400, width=700)
+inicial_frame = tk.Frame(window , height=400, width=700)
 
 # Conteúdo para os frames
 tk.Label(create_table_frame, text='Página de Criação de Tabelas').pack()
@@ -109,6 +130,7 @@ for frame in (create_table_frame, show_tables_frame, inicial_frame):
 
 content_inicial_page()
 content_create_table_page()
+content_show_tables_page()
 # Menu setup
 menu_bar = tk.Menu(window)
 window.config(menu=menu_bar)
