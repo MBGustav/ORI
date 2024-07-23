@@ -13,14 +13,7 @@ using namespace std;
 
 int main(){
 
-    // create_tab();
+    DataInterface_test();
+    Test_HeaderHandler();
     SimpleHandler_tst();
-
-    using_pkey_validation();
-
-    query_pkey_test();
-    
-
-    // DataInterface_test();
-    // Test_HeaderHandler();
 }
