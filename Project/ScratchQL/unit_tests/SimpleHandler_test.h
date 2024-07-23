@@ -155,6 +155,7 @@ void query_skey_test()
 {
     size_t row_offset = 100;
     string file = "pkey_test.bin";
+    string new_file = "newtable.tab";
 
     SimpleTableHandler T(file);
     populateTable(T, 200);
@@ -166,17 +167,19 @@ void query_skey_test()
     
 
 
-    SimpleTableHandler NewTable(list_query, "NewTable.tab", false);
+    SimpleTableHandler NewTable(list_query, new_file, false);
 
     NewTable.display();
 
     std::remove(file.c_str());
+    std::remove(new_file.c_str());
 }
 
 void query_skey_upper_test()
 {
     size_t row_offset = 100;
     string file = "pkey_test.bin";
+    string new_file = "NewTable_upper.tab";
 
     SimpleTableHandler T(file);
     populateTable(T, 200);
@@ -189,6 +192,8 @@ void query_skey_upper_test()
     NewTable.display();
 
     std::remove(file.c_str());
+    std::remove(new_file.c_str());
+
 }
 
 void query_pkey_test()

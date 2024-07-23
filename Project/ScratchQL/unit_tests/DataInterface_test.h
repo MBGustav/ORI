@@ -245,6 +245,8 @@ void StringTestFile() {
 
     if(sucess) std::cout << "[PASSED] String - TestFile" <<std::endl;
     else std::cout << "[FAILED]  data does not match (" << vec_read[i].get_value() <<" != " << vec_write[i].get_value() <<")\n";
+
+    std::remove(file_name.c_str());
 }
 
 void StringHandlerTest()
