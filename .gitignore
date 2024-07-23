@@ -3,3 +3,4 @@
 Project/main
 Project/FolderTables/*.tab
 **/archived/**
+**/__pycache__/**
