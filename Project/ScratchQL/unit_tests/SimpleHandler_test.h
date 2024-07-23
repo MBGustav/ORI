@@ -179,7 +179,7 @@ void query_pkey_test()
 
 void generic_table_size_test(){
     
-    string file = "generic_table_size_test.bin";
+    string file = "generic_table_size_test";
 
     vector<EntityProperties> vec = {
         EntityProperties("ID_NUMBER"     , DataType::INT    ),
@@ -231,6 +231,48 @@ void generic_table_size_test(){
     std::remove(file.c_str());
 }
 
+void read_table_test()
+{
+    string file = "read_table_test";
+
+        vector<EntityProperties> entities = {
+        EntityProperties("ID_NUMBER"     , DataType::INT    ),
+        EntityProperties("ID_NAME"       , DataType::INT    ),
+        EntityProperties("NAME_CUSTOMER" , DataType::STRING ),
+        EntityProperties("ID_CLIENT"     , DataType::INT    ),
+        EntityProperties("NAME_CLIENT"   , DataType::STRING ),
+        EntityProperties("DATE_CREATED"  , DataType::DATE   ),
+    };
+
+    //create table
+    SimpleTableHandler GenericTable(file, entities, false);
+    std:cout << "cria\n";
+    vector<DataInterface*> row  = {
+        dt_alloc(DataType::INT    , "123"), 
+        dt_alloc(DataType::INT    , "5464"), 
+        dt_alloc(DataType::STRING , "Adolfo Fernandes"), 
+        dt_alloc(DataType::INT    , "092"), 
+        dt_alloc(DataType::STRING , "Lanches S.A"), 
+        dt_alloc(DataType::DATE   , "01/02/2024")
+    };
+
+    GenericTable.write_row(row);
+    GenericTable.display();
+    GenericTable.close();
+
+
+    // SimpleTableHandler Test(file, false);
+    
+    // Test.read_file();
+
+
+    // if(Test.valid_pkey("123")) std::cout <<"[PASSED] valid creation\n";
+    // else std::cout << "[ERROR] did not find\n";
+
+    // Test.display();
+}
+
+
 void SimpleHandler_tst(){
 
     // using_pkey_validation();
@@ -238,7 +280,9 @@ void SimpleHandler_tst(){
     // test_readPrevFile();
 
     // query_pkey_test();
-    generic_table_size_test();
+    // generic_table_size_test();
+
+    read_table_test(); 
 }
 
 
