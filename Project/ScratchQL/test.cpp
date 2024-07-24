@@ -16,6 +16,32 @@
 
 // using namespace std;
 
+//hint1: faça uma função que ja receba os parametros de configuração,ex:
+SimpleTableHandler *new_table(string nome_tabela, vector<DataType> tipagem_dados, vector<string> nome_colunas)
+{
+    
+    SimpleTableHandler *Table = new SimpleTableHandler(nome_tabela, tipagem_dados, nome_colunas);
+
+    return Table;
+}
+
+
+//hint2: faça uma função que receba a tabela como parametro para escrita de uma linha, ex:
+bool incluir_linha(SimpleTableHandler Tabela, vector<DataInterface*> linha)
+{
+    // verifica total de items na linha(tem que ser o mesmo que a qtd de colunas)
+    if(linha.size() != Tabela.get_total_entities()) return false;
+
+    //verica os tipos de dados
+    for(...) if(entity[i].get_type != linha[i].get_type()) return false;
+
+    //tudo verifica, adiciona
+    Tabela.write_row(linha);
+
+
+    return true;
+};
+
 
 
 int main()
