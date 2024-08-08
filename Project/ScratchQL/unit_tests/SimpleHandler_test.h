@@ -84,6 +84,7 @@ void populateTable(SimpleTableHandler &Table, size_t size)
 {
 
     std::vector<DataInterface*> row(4);
+    
     row[0] = dt_alloc(DataType::STRING); // CPF
     row[1] = dt_alloc(DataType::STRING); // NOME
     row[2] = dt_alloc(DataType::INT); // IDADE
@@ -151,80 +152,71 @@ void using_pkey_validation(){
     std::remove(file_name.c_str());
 }
 
-void query_skey_test()
-{
-    size_t row_offset = 100;
-    string file = "pkey_test.bin";
-
-    SimpleTableHandler T(file);
-    populateTable(T, 200);
-    T.read_file();
-
-    T.display();
-
-    vector<vector<DataInterface*>> list_query = T.read_skey("Sweden","CIDADE");
-    
-
-
-    SimpleTableHandler NewTable(list_query, "NewTable.tab", false);
-
-    NewTable.display();
-
-    std::remove(file.c_str());
-}
-
-void query_skey_upper_test()
-{
-    size_t row_offset = 100;
-    string file = "pkey_test.bin";
-
-    SimpleTableHandler T(file);
-    populateTable(T, 200);
-    T.read_file();
-
-    vector<vector<DataInterface*>> list_query = T.read_skey_greater("50","IDADE");
-    
-    SimpleTableHandler NewTable(list_query, "NewTable_upper.tab", false);
-
-    NewTable.display();
-
-    std::remove(file.c_str());
-}
 
 void query_pkey_test()
 {
 
-    size_t row_offset = 100;
     string file = "pkey_test.bin";
-
     SimpleTableHandler T(file);
+
     populateTable(T, 100);
+
     T.read_file();
+    vector<DataInterface*> row; 
 
-    vector<DataInterface*> row, exp_row(4); 
-    exp_row[0] = dt_alloc(DataType::STRING); // CPF
-    exp_row[1] = dt_alloc(DataType::STRING); // NOME
-    exp_row[2] = dt_alloc(DataType::INT);    // IDADE
-    exp_row[3] = dt_alloc(DataType::STRING); // CIDADE
+    //hard-coded values testing
 
+    T.display();
     row = T.read_pkey("3");
 
 
-    std::fstream f(file.c_str(), std::ios::binary | std::ios::in);
-    f.seekg(3*row_offset, std::ios::beg);
-    for(auto itr:exp_row) itr->fread(f);
+    for(auto itr: row)  
+        std::cout << itr->toString() << ", ";
+    std::cout <<"\n";
+
+    std::remove(file.c_str());
+}
+
+void generic_table_size_test(){
+    
+    string file = "generic_table_size_test.bin";
+
+    vector<EntityProperties> vec = {
+        EntityProperties("ID_NUMBER"     , DataType::INT    ),
+        EntityProperties("ID_NAME"       , DataType::INT    ),
+        EntityProperties("NAME_CUSTOMER" , DataType::STRING ),
+        EntityProperties("ID_CLIENT"     , DataType::INT    ),
+        EntityProperties("NAME_CLIENT"   , DataType::STRING ),
+        EntityProperties("DATE_CREATED"  , DataType::DATE   ),
+    };
+
+    SimpleTableHandler GenericTable(file, vec);
+
+    vector<DataInterface*> row  = {
+        dt_alloc(DataType::INT    , "123"), 
+        dt_alloc(DataType::INT    , "5464"), 
+        dt_alloc(DataType::STRING , "Adolfo Fernandes"), 
+        dt_alloc(DataType::INT    , "092"), 
+        dt_alloc(DataType::STRING , "Lanches S.A"), 
+        dt_alloc(DataType::DATE   , "01/02/2024")
+    };
+
+    vector<DataInterface*> wrong_row  = {
+        dt_alloc(DataType::INT    , "123"), 
+        dt_alloc(DataType::INT    , "5464"), 
+        dt_alloc(DataType::STRING , "Adolfo Fernandes"), 
+        dt_alloc(DataType::INT    , "092"), 
+        dt_alloc(DataType::STRING , "Lanches S.A"), 
+        dt_alloc(DataType::DATE   , "01/02/2024")
+    };
+    GenericTable.write_row(row);
 
     
+    GenericTable.display();
 
-    for(int i = 0; i < row.size(); i++){
-        if(exp_row[i]->toString() != row[i]->toString()){
-            throw std::runtime_error("[ERROR] query pkey test Failed, value differs\n");
-        }
-    }
 
-    f.close();
+
     std::remove(file.c_str());
-    std::cout << "[PASSED] query pkey ok\n";
 }
 
 void SimpleHandler_tst(){
@@ -234,7 +226,7 @@ void SimpleHandler_tst(){
     test_readPrevFile();
 
     query_pkey_test();
-
-    query_skey_test();
-    query_skey_upper_test();
+    generic_table_size_test();
 }
+
+

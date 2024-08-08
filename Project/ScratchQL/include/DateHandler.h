@@ -4,6 +4,7 @@
 #include "DataInterface.h"
 // #include "Date.h"
 #include <string>
+#include <cstring>
 #include <fstream>
 
 using std::string;
@@ -38,12 +39,19 @@ public:
     bool is_bissext(int _y);
 
     virtual size_t bin_size();
-    virtual DataType read_DataType();
+    virtual DataType read_DataType() const;
     virtual string toString();
     virtual void parseString(string &data);
 
     virtual void fwrite(std::fstream &file);
     virtual void fread(std::fstream &file);
+
+    // bool compare_val(DataInterface* left)const;
+    // virtual bool compare_val(string data, DataType type)const;
+    bool equal(DataInterface* left)const;
+    
+    //bool is_numeric() const =0;
+
 };
 
 

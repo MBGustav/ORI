@@ -8,7 +8,6 @@
 
 DateHandler::DateHandler(string &input)
 {
-    //strip down string to write DATE
 
     int day, month, year;
     
@@ -18,7 +17,7 @@ DateHandler::DateHandler(string &input)
 
     NewDate(day, month, year);
 
-    bool is_valid(int m, int d, int y);
+    // bool is_valid(int m, int d, int y);
 
 
 }
@@ -35,7 +34,7 @@ DateHandler::DateHandler(int month, int day, int year)
 }
 DateHandler::DateHandler(){}
 
-DataType DateHandler::read_DataType(){return DataType::DATE;}
+DataType DateHandler::read_DataType() const {return DataType::DATE;}
 
 DateHandler::DateHandler(DateHandler &date) 
 {
@@ -54,9 +53,36 @@ string DateHandler::toString(){
     return ans;
 }
 
-void DateHandler::parseString(string &data){
-    //check if is valid before;
-    // _date.parseString(data);
+void DateHandler::parseString(std::string &data){
+    
+    // Encontrar as posições dos delimitadores '/'
+    size_t firstSlash = data.find('/');
+    size_t secondSlash = data.find('/', firstSlash + 1);
+
+    if (firstSlash == std::string::npos || secondSlash == std::string::npos) {
+        std::cerr << "Formato de data inválido" << std::endl;
+        return;
+    }
+
+    
+    std::string dayStr = data.substr(0, firstSlash);
+    int day = std::stoi(dayStr);
+
+    std::string monthStr = data.substr(firstSlash + 1, secondSlash - firstSlash - 1);
+    int month = std::stoi(monthStr);
+
+    std::string yearStr = data.substr(secondSlash + 1);
+    int year = std::stoi(yearStr);
+
+    // Verificar se a data é válida (opcional)
+    if ((month < 1 || month > 12 || day < 1 || day > 31)) { //TODO: fix it - is_valid
+        std::cerr << "Data inválida" << std::endl;
+        return;
+    }
+
+
+    // Definir a nova data
+    NewDate(day, month, year);
 }
 
 void DateHandler::fwrite(std::fstream &file){
@@ -64,9 +90,7 @@ void DateHandler::fwrite(std::fstream &file){
 }
 
 void DateHandler::fread(std::fstream &file){
-   if(file.read(reinterpret_cast<char*>(this), sizeof(*this)))
-        std::cout << "OK\n";
-    else std::cout << "not OK\n";
+   file.read(reinterpret_cast<char*>(this), sizeof(*this));
 }
 
 bool DateHandler::is_bissext(int _ano){
@@ -84,5 +108,14 @@ bool DateHandler::is_valid(int _mes, int _dia, int _ano)
 
 size_t DateHandler::bin_size() {return sizeof(*this);};  
 
+
+// bool DateHandler::compare_val(DataInterface* left)const{
+//     return true;
+// }
+
+
+bool DateHandler::equal(DataInterface* left)const{
+    return true;
+}
 
 #endif /*_DATAHANDLER_H_*/

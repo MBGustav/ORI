@@ -25,16 +25,20 @@ public:
     ~StringHandler();
 
     void set_value(string &val);
-    string get_value(){return _data;};
+    string get_value() const{return _data;};
 
     virtual size_t bin_size(); 
-    virtual DataType read_DataType();
+    virtual DataType read_DataType() const;
     virtual string toString(); 
 
     virtual void parseString(string &data);
 
     virtual void fwrite(std::fstream &file);
     virtual void fread(std::fstream &file);
+    // virtual bool compare_val(DataInterface *left)const;
+    // virtual bool compare_val(string data, DataType type) const;
+    virtual bool equal(DataInterface *left)const;
+
 };
 
 // StringHandler::StringHandler():_data("", STR_MAX_SIZE){}
@@ -47,7 +51,7 @@ StringHandler::~StringHandler(){}
 
 size_t StringHandler::bin_size(){return static_cast<size_t>(STR_MAX_SIZE);}
 
-DataType StringHandler::read_DataType() { return DataType::STRING;}
+DataType StringHandler::read_DataType()const  { return DataType::STRING;}
 
 string StringHandler::toString()
 {
@@ -79,6 +83,25 @@ void StringHandler::fread(std::fstream &file){
 
     char sz = static_cast<char>(tmp[STR_MAX_SIZE - 1]);
     _data.assign(tmp, sz); // Only assign up to the actual string size
+}
+
+// bool StringHandler::compare_val(DataInterface* left)const{
+//     if(!left->read_DataType() != this->read_DataType())
+//         throw std::runtime_error("[ERROR] Comparin different types of data");
+
+//     StringHandler *l = dynamic_cast<StringHandler*>(left);
+  
+//     return this->get_value() >= l->get_value();
+// }
+    
+
+bool StringHandler::equal(DataInterface* left)const{
+    if(!left->read_DataType() != this->read_DataType())
+        throw std::runtime_error("[ERROR] Comparin different types of data");
+
+    StringHandler *l = dynamic_cast<StringHandler*>(left);
+  
+    return this->get_value() == l->get_value();
 }
 
 #endif /*_INTHANDLER_H_*/
