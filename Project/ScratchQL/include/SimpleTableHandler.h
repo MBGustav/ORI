@@ -26,11 +26,12 @@ using std::ios, std::to_string;
 
 
 typedef enum file_mode{
-    OPEN_FILE,
-    CLOSE_FILE, 
+    READ,
+    WRITE,
     APPEND, 
-    CREATE, 
-    DELETE
+    CREATE,
+    CLEAR_ALL,
+    CLOSE
 }file_mode;
 
 DataInterface *dt_alloc(DataType type, string data="")
@@ -103,6 +104,7 @@ private:
     string Filename;
 
     std::fstream file_ptr;
+    file_mode file_status;
     bool temp_table;
 
 
@@ -117,22 +119,29 @@ private:
 
     vector<EntityProperties> prop;
 
+    bool valid_insertion(vector<DataInterface*> row){
+        if(row.size() != total_entities) return false;
+        for(int i = 0; i < row.size(); i++) if(row[i]->read_DataType() != prop[i].type) return false;
+        return true;
+    }
+
+
+    // Making opening efficient
+    void set_file_status(file_mode f_status = file_mode::READ);
 
 
 public:
 
     SimpleTableHandler(std::string Filename, bool temporary = false);
-
     SimpleTableHandler(std::string Filename,  std::vector<EntityProperties>&prop, bool is_tmp = true); //create a new table
-
     SimpleTableHandler(vector<vector<DataInterface*>>, std::string fname = "temp", bool is_tmp = true); //result from a query
-
     ~SimpleTableHandler(){ if(temp_table) std::remove(Filename.c_str());};
 
     bool valid_pkey(key_format pkey);
     bool valid_skey(key_format pkey, string name_entity);
 
     void write_row(vector<DataInterface*> row);
+
 
     vector<DataInterface*> read_row(size_t row, bool is_RNN = false); 
 
@@ -164,8 +173,9 @@ SimpleTableHandler::SimpleTableHandler(std::string Filename, bool temporary): Fi
     EntityProperties prop3("IDADE" , DataType::INT   , 2);
     EntityProperties prop4("CIDADE", DataType::STRING, 3);
 
-
-
+    // set_file_status(CREATE);
+    file_ptr.open(Filename.c_str(), std::ios::binary | std::ios::out); 
+    file_ptr.close();
     prop.push_back(prop1);
     prop.push_back(prop2);
     prop.push_back(prop3);
@@ -179,7 +189,7 @@ SimpleTableHandler::SimpleTableHandler(std::string Filename, bool temporary): Fi
     // items_added=0;
 }
 SimpleTableHandler::SimpleTableHandler(std::string fname,  std::vector<EntityProperties> &prop, bool tmp ):
-                    Filename(fname), temp_table(tmp) 
+                    Filename(fname), temp_table(tmp), file_status(CREATE)
 {
 
     const int prop_len =  prop.size();
@@ -192,9 +202,9 @@ SimpleTableHandler::SimpleTableHandler(std::string fname,  std::vector<EntityPro
     this->prop = prop;
 
     //create file
-    file_ptr.open(Filename.c_str(), std::ios::binary | std::ios::out);
+    // set_file_status(CREATE);
+    file_ptr.open(Filename.c_str(), std::ios::binary | std::ios::out); 
     file_ptr.close();
-
 
 }
 
@@ -235,12 +245,11 @@ SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std
 
 void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
+    // set_file_status(APPEND);
     file_ptr.open(Filename.c_str(), ios::binary | ios::app);
-
-
-    for(int it = 0;it < row.size(); it++)
-        row[it]->fwrite(file_ptr);
-
+    if(valid_insertion(row))
+        for(int it = 0;it < row.size(); it++)
+            row[it]->fwrite(file_ptr);
     file_ptr.close();
 }
 
@@ -333,6 +342,47 @@ void SimpleTableHandler::display(){
     pretty_sep();
     std::cout << "Total Rows: "<< total << std::endl;  
 }
+
+// void SimpleTableHandler::set_file_status(file_mode f_status)
+// {
+//     std::ios::ios_base::openmode file_ios = std::ios::binary;
+    
+//     bool is_open = file_ptr.is_open();
+
+
+//     switch (f_status){
+//         case file_mode::READ:
+//         {
+//             file_ios |= std::ios::in;
+//             break;
+//         }
+//         case file_mode::WRITE:
+//         {
+//             file_ios |= std::ios::out;
+//             break;
+//         }
+//         case file_mode::APPEND:
+//         {
+//             file_ios |= std::ios::app;
+//             break;
+//         }
+//         case file_mode::CREATE:
+//         {
+//             file_ios |= std::ios::out;
+//             break;
+//         }
+//         // case file_mode::CLOSE:{}
+//         default:
+//         {
+//             break;
+//         }
+//     }    
+
+//     if(is_open || f_status != this->file_status) file_ptr.close();
+//     //TODO: enchance performance checking status file
+
+//     file_ptr.open(Filename.c_str(), file_ios);
+// }
 
 void SimpleTableHandler::read_file() // TODO: fix it!
 {   

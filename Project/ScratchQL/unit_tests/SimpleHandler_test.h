@@ -202,17 +202,28 @@ void generic_table_size_test(){
     };
 
     vector<DataInterface*> wrong_row  = {
-        dt_alloc(DataType::INT    , "123"), 
-        dt_alloc(DataType::INT    , "5464"), 
-        dt_alloc(DataType::STRING , "Adolfo Fernandes"), 
+        dt_alloc(DataType::INT    , "12311"), 
+        dt_alloc(DataType::INT    , "546412"),     
         dt_alloc(DataType::INT    , "092"), 
         dt_alloc(DataType::STRING , "Lanches S.A"), 
         dt_alloc(DataType::DATE   , "01/02/2024")
-    };
-    GenericTable.write_row(row);
+    };//missing parameter
 
-    
+    vector<DataInterface*> other_row  = {
+        dt_alloc(DataType::INT    , "124"), 
+        dt_alloc(DataType::INT    , "4564"), 
+        dt_alloc(DataType::STRING , "Adolfo Estevao"), 
+        dt_alloc(DataType::INT    , "091"), 
+        dt_alloc(DataType::STRING , "Lanches False S.A"), 
+        dt_alloc(DataType::DATE   , "01/02/1800")
+    };
+
+    GenericTable.write_row(row);
+    GenericTable.write_row(wrong_row);
+    GenericTable.write_row(other_row);
+
     GenericTable.display();
+
 
 
 
