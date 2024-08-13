@@ -2,6 +2,7 @@
 #define _STRINGHANDLER_H_
 
 #include <string>
+#include <cstring>
 #include <algorithm>
 
 #include "DataInterface.h"

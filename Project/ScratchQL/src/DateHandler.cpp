@@ -8,21 +8,10 @@
 
 DateHandler::DateHandler(string &input)
 {
-
-    int day, month, year;
-    
-    day   = stoi(input.substr(0,2));
-    month = stoi(input.substr(3,5));
-    year  = stoi(input.substr(6,10));
-
-    NewDate(day, month, year);
-
-    // bool is_valid(int m, int d, int y);
-
-
+    parseString(input);
 }
 
-void DateHandler::NewDate(int month, int day, int year)
+void DateHandler::NewDate(int day, int month, int year)
 {
     m = month;
     d = day;
@@ -97,7 +86,7 @@ bool DateHandler::is_bissext(int _ano){
     return (_ano % 400 == 0) || ( (_ano % 4 == 0) && (_ano % 100 != 0) );
 }
 
-bool DateHandler::is_valid(int _mes, int _dia, int _ano)
+bool DateHandler::is_valid(int _dia, int _mes, int _ano)
 {
     int feb_add = 0;
     if(is_bissext(_ano) && _mes == 2) feb_add = 1;

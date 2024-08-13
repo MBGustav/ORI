@@ -2,11 +2,9 @@
 #define _DATAINTERFACE_H_
 
 #include <string>
+#include <fstream>
+#include <iostream>
 using std::string;
-// #include "IntHandler.h"
-// #include "FloatHandler.h"
-// #include "DateHandler.h"
-// #include "StringHandler.h"
 
 #define STR_MAX_SIZE (32)
 
@@ -17,6 +15,7 @@ typedef enum{
     INT,
     DATE
 }DataType;
+
 
 
 // TODO : implement a virtual method that deals with binary --  better to search in three/ index
@@ -42,6 +41,12 @@ class DataInterface
 
     bool is_numeric() const{return read_DataType() == DataType::INT || read_DataType() == DataType::FLOAT;};
 };
+
+
+//  FIX IT - how to insert here? 
+DataInterface *dt_alloc(DataType type, string data="");
+size_t data_size(DataType type);
+
 
 
 
