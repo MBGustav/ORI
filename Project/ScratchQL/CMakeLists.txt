@@ -16,7 +16,7 @@ set(SQL_SOURCES
 "src/FloatHandler.cpp"
 "src/IntHandler.cpp"
 "src/StringHandler.cpp"
-"src/HeaderHandler.cpp"
+# "src/HeaderHandler.cpp"
 )
 
 # Link Files with the project

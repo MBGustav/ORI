@@ -7,12 +7,12 @@
 #include <filesystem>
 #include <set>
 
-
+#include "HeaderHandler.h"
 #include "DataInterface.h"
-#include "IntHandler.h"
 #include "FloatHandler.h"
+#include "IntHandler.h"
 #include "StringHandler.h"
-
+#include "DateHandler.h"
 
 using std::vector, std::ios, std::set;
 
@@ -22,8 +22,66 @@ namespace fs = std::filesystem;
     #define DIR_TABLE "ScratchQL/FolderTables/"
 #endif
 
+DataInterface *dt_alloc(DataType type, string data="")
+{
+    DataInterface *ptr = nullptr;
 
+    switch (type){
+        case DataType::DATE:{
+            ptr = new DateHandler();
+            break;
+        }
+        case DataType::INT:{
+            ptr = new IntHandler();
+            break;
+        }
 
+        case DataType::STRING:{
+            ptr = new StringHandler();
+            break;
+        }
+
+        case DataType::FLOAT:{
+            ptr = new FloatHandler();
+            break;
+        }
+
+        case DataType::TYPE_NULL:
+        default:
+            break;
+    }
+    if(ptr!=nullptr && data!="")
+        ptr->parseString(data);
+
+    return ptr;
+}
+
+size_t data_size(DataType type){
+    switch (type){
+        case DataType::DATE:{
+            DateHandler d;
+            return d.bin_size();
+        }
+        case DataType::INT:{
+            IntHandler d;
+            return d.bin_size();
+        }
+        case DataType::STRING:{
+            StringHandler d;
+            return d.bin_size();
+        }
+        case DataType::FLOAT:{
+            FloatHandler d;
+            return d.bin_size();
+        }
+
+        case DataType::TYPE_NULL:
+        default:
+            break;
+    }
+
+    throw std::runtime_error("[ERROR] Fail to figure out which type is");
+}
 std::set<string> list_tables()
 {
     // const std::string path = string(DIR_TABLE);
@@ -46,6 +104,7 @@ typedef struct EntityProperties{
     EntityProperties(string _name="", DataType _type=TYPE_NULL,size_t id_col=0): 
         name(_name), type(_type),idx_col(id_col){};
 }EntityProperties;
+
 
 
 
@@ -283,12 +342,11 @@ bool FileHandler::eof_data() const {return data_file.eof();}
 // }
 
 bool FileHandler::valid_insert(vector<DataInterface*> row) const{
-    std::cout <<  row.size() <<"x" << get_total_entities() << "\n";
+    
     if(row.size() != get_total_entities()) 
         return false;
     vector<EntityProperties> entity = get_entities();
     for(int i = 0; i < row.size(); i++){
-        std::cout << row[i]->read_DataType() << "x" << entity[i].type <<"\n";
         if(row[i]->read_DataType() != entity[i].type) return false;
     }
     return true;
@@ -309,10 +367,10 @@ void FileHandler::write_header() {
     offset_header  = get_offset_header();
     total_entities = get_total_entities();
 
-    std::cout << "total_elements \t" << total_elements <<"\n";
-    std::cout << "offset_row \t" << offset_row <<"\n";
-    std::cout << "offset_header \t" << offset_header <<"\n";
-    std::cout << "total_entities \t" << total_entities <<"\n\n";
+    // std::cout << "total_elements \t" << total_elements <<"\n";
+    // std::cout << "offset_row \t" << offset_row <<"\n";
+    // std::cout << "offset_header \t" << offset_header <<"\n";
+    // std::cout << "total_entities \t" << total_entities <<"\n\n";
 
     header_file.write(reinterpret_cast<char*>(&total_elements), sizeof(total_elements));
     header_file.write(reinterpret_cast<char*>(&offset_row), sizeof(offset_row));
