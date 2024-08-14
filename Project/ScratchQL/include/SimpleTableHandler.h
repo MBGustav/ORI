@@ -181,15 +181,6 @@ SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std
 
 void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
-    /*REMOVER ESTE TRECHO*/
-    // set_file_status(APPEND);
-    // file_ptr.open(Filename.c_str(), ios::binary | ios::app);
-    //     for(int it = 0;it < row.size(); it++)
-    //         row[it]->fwrite(file_ptr);
-    // file_ptr.close();
-    /*REMOVE*/
-
-    // if(valid_insertion(row))
     file_handler.write_data(row);
 }
 
@@ -286,8 +277,8 @@ void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must f
     
     file_handler.open();
 
-    size_t idx = 0;
-    int total = get_total_entities();
+    // size_t idx = 0;
+    // int total = get_total_entities();
     const size_t offset = row_offset();
     size_t fsize = bin_fsize();
     size_t RRN = 0;
@@ -312,9 +303,10 @@ void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must f
 
 
 size_t SimpleTableHandler::row_offset(){    
-    size_t ans = 0;
-    for(auto ptr : prop) ans += data_size(ptr.type);
-    return ans;
+    // size_t ans = 0;
+    // for(auto ptr : prop) ans += data_size(ptr.type);
+    return file_handler.row_offset();
+    // return ans;
 }
 
 

@@ -43,12 +43,4 @@ class DataInterface
 };
 
 
-//  FIX IT - how to insert here? 
-DataInterface *dt_alloc(DataType type, string data="");
-size_t data_size(DataType type);
-
-
-
-
-
 #endif /*_DATAINTERFACE_H_*/

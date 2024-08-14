@@ -45,13 +45,13 @@ set_target_properties(unit_test
     ScratchQL_lib
 )
 
-add_executable(cli_interface "ScratchQL/test.cpp")
-set_target_properties(cli_interface
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-    "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(cli_interface PRIVATE
-    ScratchQL_lib
-)
+# add_executable(cli_interface "ScratchQL/test.cpp")
+# set_target_properties(cli_interface
+#     PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+#     "${CMAKE_CURRENT_SOURCE_DIR}")
+#     target_link_libraries(cli_interface PRIVATE
+#     ScratchQL_lib
+# )
          
 
 # add_executable(main main.cpp)

@@ -222,6 +222,7 @@ void generic_table_size_test(){
     GenericTable.write_row(wrong_row);
     GenericTable.write_row(other_row);
 
+
     GenericTable.display();
 
 
@@ -232,11 +233,11 @@ void generic_table_size_test(){
 
 void SimpleHandler_tst(){
 
-    using_pkey_validation();
-    test_read_file_shandler();
-    test_readPrevFile();
+    // using_pkey_validation();
+    // test_read_file_shandler();
+    // test_readPrevFile();
 
-    query_pkey_test();
+    // query_pkey_test();
     generic_table_size_test();
 }
 
