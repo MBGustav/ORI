@@ -177,26 +177,26 @@ EntityProperties *HeaderHandler::get_EntityProperties(string name_entity)
     return copy_of;
 }
 
-void HeaderHandler::display_prop()
-{
+// void HeaderHandler::display_prop()
+// {
     
-    std::cout << "\n.::Header Properties::.\n";
+//     std::cout << "\n.::Header Properties::.\n";
 
-    std::cout << " - Nro. rows :     " << get_total_elements() << std::endl;
-    std::cout << " - Offset_row:     " << get_offset_row() << std::endl;
-    std::cout << " - Offset_header:  " << get_offset_header() << std::endl;
-    std::cout << " - Total_entities: " << get_total_entities() << std::endl;
-
-
-    vector<EntityProperties>  ent = get_EntityList();
-    std::cout << "----Entities----\n";
-    for(int i =0; i < ent.size(); i++){
-    std::cout << "{Name: " << ent[i].name
-              << ", Offset: " << ent[i].offset 
-              << ", type: " << ent[i].type<<"}" <<std::endl;
-    }
+//     std::cout << " - Nro. rows :     " << get_total_elements() << std::endl;
+//     std::cout << " - Offset_row:     " << get_offset_row() << std::endl;
+//     std::cout << " - Offset_header:  " << get_offset_header() << std::endl;
+//     std::cout << " - Total_entities: " << get_total_entities() << std::endl;
 
 
+//     vector<EntityProperties>  ent = get_EntityList();
+//     std::cout << "----Entities----\n";
+//     for(int i =0; i < ent.size(); i++){
+//     std::cout << "{Name: " << ent[i].name
+//               << ", Offset: " << ent[i].offset 
+//               << ", type: " << ent[i].type<<"}" <<std::endl;
+//     }
 
 
-}
+
+
+// }

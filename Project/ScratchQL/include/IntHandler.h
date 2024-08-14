@@ -15,14 +15,19 @@ public:
 
     ~IntHandler();
     void set_value(int val);
-    int get_value();
+    int get_value() const;
     virtual size_t bin_size();
-    virtual DataType read_DataType();
+    virtual DataType read_DataType()const ;
     virtual string toString();
     virtual void parseString(string &data);
 
     virtual void fwrite(std::fstream &file);
     virtual void fread(std::fstream &file);
+
+    // virtual bool compare_val(string data, DataType type) const;
+    
+    // virtual bool compare_val(DataInterface *left)const;
+    virtual bool equal(DataInterface *left)const;
 };
 
 #endif /*_INTHANDLER_H_*/

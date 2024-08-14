@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <cstring>
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
@@ -29,10 +30,10 @@ public:
     ~StringHandler();
 
     void set_value(string &val);
-    string get_value(){return _data;};
+    string get_value() const{return _data;};
 
     virtual size_t bin_size(); 
-    virtual DataType read_DataType();
+    virtual DataType read_DataType() const;
     virtual string toString(); 
 
     virtual void parseString(string &data);

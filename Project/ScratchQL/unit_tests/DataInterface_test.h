@@ -1,10 +1,14 @@
 #include <iostream>
 #include <assert.h>
+#include <fstream>
 #include "DataInterface.h"
 #include "StringHandler.h"
 #include "DateHandler.h"
 #include "FloatHandler.h"
 #include "IntHandler.h"
+
+using std::fstream;
+
 
 void testConstructorAndGetValue() {
     IntHandler handler(10);
