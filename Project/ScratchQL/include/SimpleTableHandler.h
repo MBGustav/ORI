@@ -46,11 +46,10 @@ private:
     string Filename;
 
     std::fstream file_ptr;//to change
+    
     FileHandler file_handler;
-    bool temp_table;
     int total_entities;
 
-    // HeaderHandler header; //Not at this Moment
 
     //Store: p_key, s_key[0], s_key[1], s_key[2], s_key[3], s_key[4]
     multimap<key_format, size_t> map[4]; // TODO: Expand for more maps
@@ -76,13 +75,13 @@ private:
 public:
 
     //constructors and destructors
-    SimpleTableHandler(std::string Filename, bool temporary = false);                                    // create/read a file
+    SimpleTableHandler(std::string filename, bool temporary = false);                                    // create/read a file
     SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary = true); //force a file creation
 
     // SimpleTableHandler(std::string Filename,  std::vector<EntityProperties>&prop, bool is_tmp = true); //create a new table
     SimpleTableHandler(vector<vector<DataInterface*>>, std::string fname = "temp", bool is_tmp = true); //result from a query
 
-    ~SimpleTableHandler(){ if(temp_table) std::remove(Filename.c_str());};
+    ~SimpleTableHandler(){};
 
     //validations
     bool valid_pkey(key_format pkey);
@@ -112,17 +111,17 @@ public:
 };
 
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
-        Filename(filename), temp_table(temporary), file_handler(filename, properties, temporary)
+        Filename(filename), file_handler(filename, properties, temporary)
 {
     set_entities(properties);
     
-    file_ptr.open(Filename.c_str(), std::ios::out);
-    file_ptr.close();
+    // file_ptr.open(Filename.c_str(), std::ios::out);
+    // file_ptr.close();
 }
 
 //Hard-coded Example prop or check for existent file
 SimpleTableHandler::SimpleTableHandler(std::string filename, bool temporary):
-        Filename(filename), total_entities(4), temp_table(temporary), file_handler(filename)
+        Filename(filename), total_entities(4), file_handler(filename)
 {
 
     EntityProperties prop1("CPF"   , DataType::STRING, 0);
@@ -138,7 +137,7 @@ SimpleTableHandler::SimpleTableHandler(std::string filename, bool temporary):
     prop.push_back(prop3);
     prop.push_back(prop4);
 
-    
+
     //set CPF as primary key
     primary_key = &prop1;
 
@@ -167,7 +166,7 @@ SimpleTableHandler::SimpleTableHandler(std::string filename, bool temporary):
 
 
 SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std::string fname, bool is_tmp )
-                    :Filename(fname), temp_table(is_tmp), total_entities(4), file_handler(Filename)
+                    :Filename(fname), total_entities(4), file_handler(Filename)
 {  
     //create file
     
@@ -206,42 +205,22 @@ void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
     /*REMOVER ESTE TRECHO*/
     // set_file_status(APPEND);
-    file_ptr.open(Filename.c_str(), ios::binary | ios::app);
+    // file_ptr.open(Filename.c_str(), ios::binary | ios::app);
     if(valid_insertion(row))
-        for(int it = 0;it < row.size(); it++)
-            row[it]->fwrite(file_ptr);
-    file_ptr.close();
+    //     for(int it = 0;it < row.size(); it++)
+    //         row[it]->fwrite(file_ptr);
+    // file_ptr.close();
     /*REMOVE*/
+
     file_handler.write_data(row);
 }
 
 vector<DataInterface*> SimpleTableHandler::read_row(size_t idx, bool is_RRN)
 {
+    vector<DataInterface*> row = file_handler.read_row(idx, is_RRN);
 
-    if (!file_ptr.is_open()) {
-        file_ptr.open(Filename.c_str(), ios::binary | ios::in);
-        // std::cerr << "[ERROR] Failed to open file\n";
-        // return vector<DataInterface*>();
-    }
-    size_t offset = idx* (is_RRN ? 1 : row_offset()); 
-
-    file_ptr.seekg(idx* (is_RRN ? 1 : row_offset()), ios::beg);
-    file_handler.seek_data(ios::beg, offset);
-
-
-    vector<DataInterface*> row(total_entities, nullptr);
-
-
-    StringHandler strhandler;
-    IntHandler ihandler;
-
-    for(int it = 0;it < total_entities; it++)
-    {
-        row[it] = dt_alloc(prop[it].type);
-        row[it]->fread(file_ptr);
-    }
-    
-    file_ptr.close();
+    for(auto r : row) 
+        if(!r) throw std::runtime_error("[ERROR] Null access");
 
     return row;
 }
@@ -310,11 +289,11 @@ void SimpleTableHandler::display(){
     int idx =0;
     //Collect data
     while(idx < total2print){
-
         row = read_row(idx++);
+
         if(row.size()!= total_entities) break;
-        
         vis_table.push_back(row);
+            
 
         for(int i=0; i < total_entities;i++) {
             size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size()); 
@@ -384,13 +363,8 @@ size_t SimpleTableHandler::row_offset(){
 
 size_t SimpleTableHandler::total_items()
 {
-    if(file_ptr.good()) {
-        size_t size = bin_fsize()/row_offset();
-        // file_ptr.close();
-        return size;
-    }
-    perror(Filename.c_str());
-    return -1;
+
+    return file_handler.get_total_elements();
 }
 size_t SimpleTableHandler::bin_fsize(){
 

@@ -54,10 +54,16 @@ private:
     std::fstream header_file, data_file;
     std::string header_filepath, data_filepath;
 
-    int total_elements, offset_row, offset_header, total_entities;
+    size_t total_elements, offset_row, offset_header, total_entities;
     vector<EntityProperties> entities;
 
     bool is_tmp;
+
+// Abrir/Fechar um arquivo
+    void ptr_file_open(std::fstream &file, const std::string& path, std::ios::openmode mode);
+    void open_data(std::ios::openmode mode);
+    void open_header(std::ios::openmode mode);
+    void close();
 
 public:
 
@@ -67,25 +73,34 @@ public:
                 std::ios::openmode data_mode = ios::binary | ios::out ,
                 bool temporary = false);
 
-    // construtor para criação de tablea
+// construtor para criação de tabela
     FileHandler(const string& filename_base, 
                 vector<EntityProperties> properties, 
                 bool temporary = false);
 
     ~FileHandler();
 
-
-// Abrir/Fechar um arquivo
-    void open(std::fstream &file, const std::string& path, std::ios::openmode mode);
-    void close();
-    void create(); // forced creation, even if already exists
-    void destroy(); // delete files
-
+    void open();    // check if there are any header. If not, create
+    void create();  // forced creation, even if exists is deleted
+    void destroy(); // delete files: header and data
 
 // Reposicionar o cursor de leitura/escrita no arquivos
     void seek_header(std::ios::seekdir dir, std::streampos pos = 0);
     void seek_data(std::ios::seekdir dir, std::streampos pos = 0);
 
+    size_t row_offset(){
+        size_t ans = 0;
+        for(auto ptr : entities) ans += data_size(ptr.type);
+        return ans;
+    }
+
+    size_t bin_fsize(){
+        open_data(ios::in);
+        seek_data(ios::end);
+        size_t size = tell_data();
+        close();
+    return  size;
+}
 // indicar posicao de leitura
     std::streampos tell_header();
     std::streampos tell_data();
@@ -96,7 +111,7 @@ public:
     size_t get_total_elements() const {return total_elements;};
     size_t get_offset_row()     const {return offset_row;};
     size_t get_offset_header()  const {return offset_header;};
-    size_t get_total_entities() const {return total_entities;};
+    size_t get_total_entities() const {return entities.size();};
 
     void set_total_elements(int _total_elements){this->total_elements = _total_elements;};
     void set_offset_row(int _offset_row){this->offset_row = _offset_row;};
@@ -104,20 +119,24 @@ public:
     void set_total_entities(int _total_entities){this->total_entities = _total_entities;};
     void set_entities(vector<EntityProperties> entities){this->entities = entities;};
 
-//valores de leitura do header
+// Leitura header
     const vector<EntityProperties>& get_entities() const {return entities;}
+
+// Leitura  data
+    vector<DataInterface*> read_row(size_t row, bool is_RNN = false); 
 
 // Status gerais
     bool eof_header() const;
     bool eof_data() const;
     bool is_temporary() const {return is_tmp;};
-    bool valid_insert(vector<DataInterface*> new_value);
+    bool valid_insert(vector<DataInterface*> new_value) const;
 
 // vinculo com DataInterface
     void write_data(DataInterface* data_ptr);
     void write_data(vector<DataInterface*> data_ptr);
-
     void read_data(DataInterface* data_ptr);
+
+
 
 };
 
@@ -126,63 +145,88 @@ FileHandler::FileHandler(const string& filename_base,
                          ios::openmode header_mode,
                          ios::openmode data_mode,
                          bool temporary)
-    :header_filepath(DIR_TABLE + filename_base + "_header"), data_filepath(DIR_TABLE + filename_base + "_data"), is_tmp(temporary)
+    :header_filepath(DIR_TABLE + filename_base + "_header"), 
+     data_filepath(DIR_TABLE + filename_base + "_data"), is_tmp(temporary),
+     total_elements(0), offset_row(0), offset_header(0), total_entities(0)
 {
-    // 1. if already exists, open ; 
-    set<string> tables = list_tables();
-    if(tables.count(header_filepath)!= 0){
-        open(header_file, header_filepath, ios::binary | ios::in);
-        open(data_file,   data_filepath,   ios::binary | ios::in);
-        read_header();
-        return;
-    }
-    // 2. if dont exist, create
-    create();
+    open();
 }
 
 FileHandler::FileHandler(const string& filename_base, 
                         vector<EntityProperties> properties, 
                         bool temporary)
             :header_filepath(DIR_TABLE + filename_base + "_header"), 
-             data_filepath(DIR_TABLE + filename_base + "_data"), is_tmp(temporary)
-                    
+             data_filepath(DIR_TABLE + filename_base + "_data"), is_tmp(temporary),
+             entities(properties),
+             total_elements(0), offset_row(0), offset_header(0), total_entities(0)
 {
     create();
-
+    write_header();
 }
 
+vector<DataInterface*> FileHandler::read_row(size_t idx, bool is_RRN)
+{
+    open_data(ios::in);
+    
+    size_t offset = idx * (is_RRN ? 1 : row_offset());
+
+    size_t total_entities = get_total_entities();
+
+
+    // std::cout << "offset:" <<offset <<"\n";
+    // std::cout << "get_total_entities():" <<total_entities <<"\n";
+    // std::cout << "tellg:" <<data_file.tellg() <<"\n";
+
+    vector<DataInterface*> row(total_entities, nullptr);
+
+    for(int it = 0;it < total_entities; it++)
+    {
+        row[it] = dt_alloc(entities[it].type);
+        // read_data(row[it]);
+        row[it]->fread(data_file);
+    }
+    close();
+    return row;
+}
 
 void FileHandler::write_data(vector<DataInterface*> data_vector) { // standard is append
-    if (!data_file.is_open()) 
-        throw std::runtime_error("Arquivo de dados não está aberto.");
-    
-    seek_header(ios::end);
+
+    open_data(ios::out | ios::app);
 
     if(valid_insert(data_vector))
         for(auto itr : data_vector)
             itr->fwrite(data_file);
+    close();
+
+    total_elements++;
+    write_header();
 }
 
 void FileHandler::write_data(DataInterface* data_ptr) {
-    if (!data_file.is_open()) 
-        throw std::runtime_error("Arquivo de dados não está aberto.");
-    
+    open_data(ios::out);
     data_ptr->fwrite(data_file);
+    close();
 }
-
 
 void FileHandler::read_data(DataInterface* data_ptr) {
-    if (!data_file.is_open())
-        throw std::runtime_error("Arquivo de dados não está aberto.");
-
+    open_data(std::ios::out);
     data_ptr->fread(data_file);
+    close();
 }
-void FileHandler::open(std::fstream &file, const std::string& path, std::ios::openmode mode) {
+
+void FileHandler::ptr_file_open(std::fstream &file, const std::string& path, std::ios::openmode mode){    
+    if(file.is_open()) file.close();
     file.open(path, mode);
     if (!file.is_open())
         throw std::runtime_error("Falha ao abrir o arquivo: " + path);
 }
+void FileHandler::open_data(std::ios::openmode mode){
+    ptr_file_open(data_file, data_filepath,std::ios::binary | mode);
+}
 
+void FileHandler::open_header(std::ios::openmode mode){
+    ptr_file_open(header_file, header_filepath,std::ios::binary | mode);
+}
 void FileHandler::destroy(){
     close();
     std::remove(header_filepath.c_str());
@@ -190,8 +234,22 @@ void FileHandler::destroy(){
 }
 
 void FileHandler::create(){
-    open(header_file, header_filepath, ios::binary | ios::out);
-    open(data_file,   data_filepath,   ios::binary | ios::out);
+    ptr_file_open(header_file, header_filepath, ios::binary | ios::out);
+    ptr_file_open(data_file,   data_filepath,   ios::binary | ios::out);
+}
+
+void FileHandler::open(){
+    
+    set<string> tables = list_tables();
+    // 1. if exists, open
+    if(tables.count(header_filepath)!= 0){
+        ptr_file_open(header_file, header_filepath, ios::binary | ios::in);
+        ptr_file_open(data_file,   data_filepath,   ios::binary | ios::in);
+        read_header();
+        return;
+    }
+    // 2. if not, create
+    create();
 }
 
 void FileHandler::close() {
@@ -199,9 +257,19 @@ void FileHandler::close() {
     if (data_file.is_open())   data_file.close();
 }
 
-void FileHandler::seek_header(std::ios::seekdir dir, std::streampos pos) {header_file.seekg(pos, dir);}
+void FileHandler::seek_header(std::ios::seekdir dir, std::streampos pos) {
+    if(!header_file.is_open())
+        throw std::runtime_error("Arquivo de header não está aberto.");
 
-void FileHandler::seek_data(std::ios::seekdir dir, std::streampos pos) {data_file.seekg(pos, dir);}
+    header_file.seekg(pos, dir);
+}
+
+void FileHandler::seek_data(std::ios::seekdir dir, std::streampos pos) {
+    // open_data(ios::in);
+    if(!data_file.is_open())
+        throw std::runtime_error("Arquivo de data não está aberto.");
+    data_file.seekg(pos, dir);
+}
 
 std::streampos FileHandler::tell_header() {return header_file.tellg();}
 
@@ -211,30 +279,30 @@ bool FileHandler::eof_header() const {return header_file.eof();}
 
 bool FileHandler::eof_data() const {return data_file.eof();}
 
-bool FileHandler::valid_insert(vector<DataInterface*> new_value)
-    {
-        // constraint
-        const size_t t_ent = get_total_entities();
-        if(new_value.size() != t_ent) return false;
+bool FileHandler::valid_insert(vector<DataInterface*> new_row) const{
 
-        vector<EntityProperties> exp = get_entities();
-        for(int i = 0; i < t_ent; i ++){
-            if(exp[i].type != new_value[i]->read_DataType()) return false;
-        }
-
-        return true;
-    }
+    if(new_row.size() != get_total_entities()) return false;
+    for(int i = 0; i < new_row.size(); i++) if(new_row[i]->read_DataType() != entities[i].type) return false;
+    return true;
+}
 
 void FileHandler::write_header() {
-    if (!header_file.is_open()) {
-        throw std::runtime_error("Arquivo de cabeçalho não está aberto.");
-    }
+    // if (!header_file.is_open()) {
+    //     throw std::runtime_error("Arquivo de cabeçalho não está aberto.");
+    // }
+    open_header(ios::out);
+
     size_t total_elements, offset_row, offset_header, total_entities;
 
     total_elements = get_total_elements();
     offset_row     = get_offset_row();
     offset_header  = get_offset_header();
     total_entities = get_total_entities();
+
+    std::cout << "total_elements \t" << total_elements <<"\n";
+    std::cout << "offset_row \t" << offset_row <<"\n";
+    std::cout << "offset_header \t" << offset_header <<"\n";
+    std::cout << "total_entities \t" << total_entities <<"\n\n";
 
     header_file.write(reinterpret_cast<char*>(&total_elements), sizeof(total_elements));
     header_file.write(reinterpret_cast<char*>(&offset_row), sizeof(offset_row));
@@ -250,6 +318,7 @@ void FileHandler::write_header() {
         str.fwrite(header_file);
         header_file.write(reinterpret_cast<char*>(&tmp_type), sizeof(tmp_type));
     }
+    close();
 }
 void FileHandler::read_header() {
     if (!header_file.is_open()) {
