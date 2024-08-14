@@ -169,13 +169,9 @@ vector<DataInterface*> FileHandler::read_row(size_t idx, bool is_RRN)
     open_data(ios::in);
     
     size_t offset = idx * (is_RRN ? 1 : row_offset());
-
+    seek_data(ios::beg, offset);
     size_t total_entities = get_total_entities();
 
-
-    // std::cout << "offset:" <<offset <<"\n";
-    // std::cout << "get_total_entities():" <<total_entities <<"\n";
-    // std::cout << "tellg:" <<data_file.tellg() <<"\n";
 
     vector<DataInterface*> row(total_entities, nullptr);
 
@@ -190,16 +186,14 @@ vector<DataInterface*> FileHandler::read_row(size_t idx, bool is_RRN)
 }
 
 void FileHandler::write_data(vector<DataInterface*> data_vector) { // standard is append
-
+    
+    if(!valid_insert(data_vector)) return;
+    
     open_data(ios::out | ios::app);
-
-    if(valid_insert(data_vector))
-        for(auto itr : data_vector)
-            itr->fwrite(data_file);
-    close();
-
+    for(auto itr : data_vector) itr->fwrite(data_file);
     total_elements++;
     write_header();
+    close();
 }
 
 void FileHandler::write_data(DataInterface* data_ptr) {
@@ -279,12 +273,28 @@ bool FileHandler::eof_header() const {return header_file.eof();}
 
 bool FileHandler::eof_data() const {return data_file.eof();}
 
-bool FileHandler::valid_insert(vector<DataInterface*> new_row) const{
+// bool FileHandler::valid_insert(vector<DataInterface*> new_row) const{
 
-    if(new_row.size() != get_total_entities()) return false;
-    for(int i = 0; i < new_row.size(); i++) if(new_row[i]->read_DataType() != entities[i].type) return false;
+//     if(new_row.size() != get_total_entities()) return false;
+
+//     for(int i = 0; i < new_row.size(); i++) 
+//         if(new_row[i]->read_DataType() != entities[i].type) return false;
+//     return true;
+// }
+
+bool FileHandler::valid_insert(vector<DataInterface*> row) const{
+    std::cout <<  row.size() <<"x" << get_total_entities() << "\n";
+    if(row.size() != get_total_entities()) 
+        return false;
+    vector<EntityProperties> entity = get_entities();
+    for(int i = 0; i < row.size(); i++){
+        std::cout << row[i]->read_DataType() << "x" << entity[i].type <<"\n";
+        if(row[i]->read_DataType() != entity[i].type) return false;
+    }
     return true;
 }
+
+
 
 void FileHandler::write_header() {
     // if (!header_file.is_open()) {
