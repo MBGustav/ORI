@@ -222,6 +222,7 @@ void generic_table_size_test(){
     GenericTable.write_row(wrong_row);
     GenericTable.write_row(other_row);
 
+
     GenericTable.display();
 
 

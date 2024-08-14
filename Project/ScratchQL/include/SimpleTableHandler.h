@@ -181,7 +181,6 @@ SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std
 
 void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
-
     file_handler.write_data(row);
 }
 

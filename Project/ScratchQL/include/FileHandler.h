@@ -40,7 +40,6 @@ DataInterface *dt_alloc(DataType type, string data="")
             ptr = new StringHandler();
             break;
         }
-
         case DataType::FLOAT:{
             ptr = new FloatHandler();
             break;

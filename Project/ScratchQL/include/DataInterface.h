@@ -43,9 +43,4 @@ class DataInterface
 };
 
 
-
-
-
-
-
 #endif /*_DATAINTERFACE_H_*/
