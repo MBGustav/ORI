@@ -43,18 +43,10 @@ typedef string key_format;
 class SimpleTableHandler
 {
 private:
-    string Filename;
-
-    // std::fstream file_ptr;//to change
-    
+    string Filename;    
     FileHandler file_handler;
-
-
-    //Store: p_key, s_key[0], s_key[1], s_key[2], s_key[3], s_key[4]
     multimap<key_format, size_t> map[10]; // TODO: Expand for more maps
-    EntityProperties *primary_key;
-
-    vector<EntityProperties> prop;
+    vector<EntityProperties> *prop;
 
 
     // bool valid_insertion(vector<DataInterface*> row){
@@ -63,26 +55,28 @@ private:
     //     for(int i = 0; i < row.size(); i++) if(row[i]->read_DataType() != entity) return false;
     //     return true;
     // }
-
-    // Making opening more simple - TODO
-
-
-
-    void set_header();
-    void read_header(); 
-
-    bool is_header_available() const;
+    void open(); 
+    void update();
 
 public:
+    void close(){file_handler.close();};
+    
+    //read a file
+    SimpleTableHandler(std::string filename,        
+                       bool temporary = false);
 
-    //constructors and destructors
-    SimpleTableHandler(std::string filename, bool temporary = false);                                    // create/read a file
-    SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary = true); //force a file creation
+    //force a file creation
+    SimpleTableHandler(std::string filename,                
+                       vector<EntityProperties> properties, 
+                       bool temporary = true); 
 
-    // SimpleTableHandler(std::string Filename,  std::vector<EntityProperties>&prop, bool is_tmp = true); //create a new table
-    SimpleTableHandler(vector<vector<DataInterface*>>, std::string fname = "temp", bool is_tmp = true); //result from a query
 
-    ~SimpleTableHandler(){};
+    SimpleTableHandler(vector<vector<DataInterface*>>, 
+                       std::string fname = "temp", 
+                       bool is_tmp = true); //result from a query
+
+
+    ~SimpleTableHandler(){file_handler.close();};
 
     //validations
     bool valid_pkey(key_format pkey);
@@ -96,13 +90,17 @@ public:
     //getter
     size_t get_total_elements() const {return file_handler.get_total_elements();}
     size_t get_total_entities() const {return file_handler.get_total_entities();}
+    vector<EntityProperties> get_entities() const {return vector<EntityProperties>(file_handler.get_entities());}
 
-
+    //setter
+    void set_entities(vector<EntityProperties> vec){
+        if(vec.data() == nullptr || vec.size() <= 0)
+            throw std::runtime_error("[ERROR] Fail to Read Entities\n");        
+        prop = &vec;
+    }
 
     //manipulations - file
     void read_file();
-
-    // void set_entities(vector<EntityProperties> properties);
 
     //TODO: fix it, maybe returns an another Table ?
     vector<vector<DataInterface*>> read_skey(key_format pkey, string name_entity);
@@ -115,6 +113,7 @@ public:
     void display();
     int get_entity_idx(string name_entity) const;
     EntityProperties get_entity(string name_entity) const;
+    
     vector<string> get_entity_names() const{
         vector<string> entities_name;
         for(auto itr : file_handler.get_entities())
@@ -126,7 +125,10 @@ public:
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
         Filename(filename), file_handler(filename, properties, temporary)
 {
-    // set_entities(properties);
+
+    
+    set_entities(properties);
+
     
     // file_ptr.open(Filename.c_str(), std::ios::out);
     // file_ptr.close();
@@ -134,29 +136,28 @@ SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProper
 
 //Hard-coded Example prop or check for existent file
 SimpleTableHandler::SimpleTableHandler(std::string filename, bool temporary):
-        Filename(filename), file_handler(filename)
+        Filename(filename), file_handler(filename, temporary)
 {
+    open();
 
-    vector<EntityProperties> prop = {
-        EntityProperties("CPF"   , DataType::STRING, 0),
-        EntityProperties("NOME"  , DataType::STRING, 1),
-        EntityProperties("IDADE" , DataType::INT   , 2),
-        EntityProperties("CIDADE", DataType::STRING, 3)
-    };
-    file_handler.set_entities(prop);
+    // vector<EntityProperties> prop = {
+    //     EntityProperties("CPF"   , DataType::STRING, 0),
+    //     EntityProperties("NOME"  , DataType::STRING, 1),
+    //     EntityProperties("IDADE" , DataType::INT   , 2),
+    //     EntityProperties("CIDADE", DataType::STRING, 3)
+    // };
+    // file_handler.set_entities(prop);
 
     //set CPF as primary key
-    primary_key = &prop[0];
+
+    // primary_key = &prop[0];
 
 }
 
 SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std::string fname, bool is_tmp )
-                    :Filename(fname), file_handler(Filename)
+                    :Filename(fname), file_handler(Filename, is_tmp)
 {  
-    //create file
     
-    // file_ptr.open(Filename, std::ios::binary | std::ios::out );
-
     vector<EntityProperties> prop = {
         EntityProperties("CPF"   , DataType::STRING, 0),
         EntityProperties("NOME"  , DataType::STRING, 1),
@@ -179,6 +180,19 @@ SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std
 }
 
 
+void SimpleTableHandler::open()
+{
+    //read from header.bin
+    file_handler.open(false); 
+
+    
+
+    //get from header
+    set_entities(file_handler.get_entities());
+    read_file();
+}
+
+
 void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
     file_handler.write_data(row);
@@ -197,18 +211,16 @@ vector<DataInterface*> SimpleTableHandler::read_row(size_t idx, bool is_RRN)
 EntityProperties SimpleTableHandler::get_entity(string name_entity) const{
     
     EntityProperties ans;
-    for(auto ptr: prop)
+    for(auto ptr: *prop)
         if(ptr.name == name_entity) return ptr;
-
-
-
+        
     throw std::runtime_error("[ERROR] Entity Not Found.");
 }
 
 
 int SimpleTableHandler::get_entity_idx(string name_entity) const{
     EntityProperties ans;
-    for(auto ptr: prop)
+    for(auto ptr: *prop)
         if(ptr.name == name_entity) return ptr.idx_col;
     throw std::runtime_error("[ERROR] Entity Not Found.");
 }
@@ -272,24 +284,12 @@ void SimpleTableHandler::display(){
 
 void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must find a header
 {   
-    // if(!table_exists(Filename))
-    //     throw std::runtime_error("[ERROR] File dont exist!\n");
-    
-    file_handler.open();
+    bool find = list_tables().count(file_handler.get_data_name());
 
-    // size_t idx = 0;
-    // int total = get_total_entities();
+
     const size_t offset = row_offset();
     size_t fsize = bin_fsize();
     size_t RRN = 0;
-
-    // std::cout << "[READ_FILE]\n";
-    // std::cout << "fsize: " << fsize << std::endl;
-    // std::cout << "total: " << total << std::endl;
-    // std::cout << "offset: " << offset << std::endl;
-
-
-    // file_ptr.open(Filename.c_str(), ios::binary | ios::in);
     
     DataInterface *dt = nullptr;
     while(RRN < fsize){
@@ -297,7 +297,7 @@ void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must f
         vector<DataInterface*> row = read_row(RRN, true);
         for(int iCol = 0; iCol < get_total_entities(); iCol++) 
             map[iCol].insert({row[iCol]->toString(), RRN});
-        RRN += offset;    
+        RRN += offset;
     }
 }
 
@@ -323,7 +323,8 @@ size_t SimpleTableHandler::bin_fsize(){
 bool SimpleTableHandler::valid_pkey(key_format key){
     
     int entity_idx = 0;
-
+    std::cout << "map-size: " << map[entity_idx].size()<<"\n";
+    
     if(map[entity_idx].find(key) == map[entity_idx].end())
         return false;
     return true;
@@ -345,13 +346,11 @@ vector<DataInterface*> SimpleTableHandler::read_pkey(key_format key){
 
     if(!valid_pkey(key))
         return vector<DataInterface*>(get_total_entities(), nullptr);
-
-    int p_idx = primary_key->idx_col;
     
 
     size_t RRN = map[0].find(key)->second;
 
-    return read_row(RRN, true);    
+    return read_row(RRN, true);
 }
 vector<vector<DataInterface*>> SimpleTableHandler::read_skey_greater(key_format key, std::string name_entity, bool add_equals)
 {
@@ -386,15 +385,14 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey_greater(key_format 
 
     // file_ptr.open(Filename.c_str(), std::ios::binary | std::ios::in);
 
-
+    vector<EntityProperties> vec_prop = get_entities();
     for(auto rrn: RRN_list)
     {
-        // file_ptr.seekg(rrn, ios::beg);
         file_handler.seek_data(ios::beg, rrn);
 
         std::vector<DataInterface*> row;
         for(int i = 0; i < get_total_entities(); i++){
-            DataInterface* data_ptr = dt_alloc(prop[i].type);
+            DataInterface* data_ptr = dt_alloc(vec_prop[i].type);
             file_handler.read_data(data_ptr);
             row.push_back(data_ptr);
         }
@@ -427,14 +425,14 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey(key_format key, str
         RRN_list.push_back(it->second);
     }
 
-
+    vector<EntityProperties> vec_prop = get_entities();    
     for(auto rrn: RRN_list)
     {
         file_handler.seek_data(ios::beg, rrn);
         
         std::vector<DataInterface*> row;
         for(int i = 0; i < get_total_entities(); i++){
-            DataInterface* data_ptr = dt_alloc(prop[i].type);
+            DataInterface* data_ptr = dt_alloc(vec_prop[i].type);
             file_handler.read_data(data_ptr);
             row.push_back(data_ptr);
         }
