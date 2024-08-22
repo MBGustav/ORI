@@ -157,6 +157,8 @@ void query_pkey_test()
 {
 
     string file = "pkey_test.bin";
+    string new_file = "newtable.tab";
+
     SimpleTableHandler T(file);
 
     populateTable(T, 100);
@@ -175,6 +177,7 @@ void query_pkey_test()
     std::cout <<"\n";
 
     std::remove(file.c_str());
+    std::remove(new_file.c_str());
 }
 
 void generic_table_size_test(){
@@ -229,6 +232,8 @@ void generic_table_size_test(){
 
 
     std::remove(file.c_str());
+    std::remove(new_file.c_str());
+
 }
 
 void read_table_test()

@@ -22,9 +22,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 include(CTest)
 enable_testing()
 
-# Local to be executed
-
-
 # Include ScratchQL -- cmakelist
 add_subdirectory(ScratchQL)
 include_directories(ScratchQL/include)
