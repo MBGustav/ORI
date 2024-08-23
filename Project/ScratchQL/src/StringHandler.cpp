@@ -8,7 +8,7 @@ StringHandler::~StringHandler(){}
 
 size_t StringHandler::bin_size(){return static_cast<size_t>(STR_MAX_SIZE);}
 
-DataType StringHandler::read_DataType() { return DataType::STRING;}
+DataType StringHandler::read_DataType() const { return DataType::STRING;}
 
 string StringHandler::toString()
 {

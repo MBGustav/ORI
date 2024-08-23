@@ -19,10 +19,11 @@ using std::vector, std::ios, std::set;
 namespace fs = std::filesystem;
 
 #ifndef DIR_TABLE
-    #define DIR_TABLE "ScratchQL/FolderTables/"
+    #define DIR_TABLE "./"
 #endif
 
 typedef enum files_list {ALL, HEADERS_ONLY, TABLES_ONLY} files_list; 
+
 
 typedef struct EntityProperties{
     string name;
@@ -307,6 +308,7 @@ void FileHandler::ptr_file_open(std::fstream &file, const std::string& path, std
     
     // if(file.is_open()) file.close();
     file.open(path,ios::binary | mode);
+    std::cout << header_filepath << "\n";
     
     if (!file.is_open())
         throw std::runtime_error("Falha ao abrir o arquivo: " + path);
@@ -342,6 +344,7 @@ void FileHandler::open(bool create_header){
         return;
     }
     // 2. if not, create
+    std::cout <<"not found << " << this->header_filepath << "\n";
     if(create_header) create();
 }
 

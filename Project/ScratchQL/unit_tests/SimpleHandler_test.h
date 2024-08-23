@@ -232,7 +232,7 @@ void generic_table_size_test(){
 
 
     std::remove(file.c_str());
-    std::remove(new_file.c_str());
+    // std::remove(new_file.c_str());
 
 }
 
@@ -262,19 +262,18 @@ void read_table_test()
     };
 
     GenericTable.write_row(row);
-    GenericTable.display();
+    // GenericTable.display();
     GenericTable.close();
 
 
-    // SimpleTableHandler Test(file, false);
-    
-    // Test.read_file();
+    SimpleTableHandler Test(file, false);
 
 
-    // if(Test.valid_pkey("123")) std::cout <<"[PASSED] valid creation\n";
-    // else std::cout << "[ERROR] did not find\n";
 
-    // Test.display();
+    if(Test.valid_pkey("123")) std::cout <<"[PASSED] valid creation\n";
+    else std::cout << "[ERROR] did not find\n";
+
+    Test.display();
 }
 
 

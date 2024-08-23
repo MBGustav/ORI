@@ -37,7 +37,7 @@ class DataInterface
     // constraint: being used with same base class
     // virtual bool compare_val(DataInterface* left)const =0;
     // virtual bool compare_val(string data, DataType type) const = 0;
-    virtual bool equal(DataInterface* left)const =0;
+    // virtual bool equal(DataInterface* left)const =0;
 
     bool is_numeric() const{return read_DataType() == DataType::INT || read_DataType() == DataType::FLOAT;};
 };

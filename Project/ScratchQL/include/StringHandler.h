@@ -24,8 +24,7 @@ private:
     // char str_data[STR_MAX_SIZE];
     string _data;
 public:
-    StringHandler() = default;
-    StringHandler(string input);
+    StringHandler(string input="");
     StringHandler(fstream &file);
     ~StringHandler();
 
@@ -42,7 +41,6 @@ public:
     virtual void fread(fstream &file);
 };
 
-// StringHandler::StringHandler():_data("", STR_MAX_SIZE){}
 
 
 #endif /*_INTHANDLER_H_*/

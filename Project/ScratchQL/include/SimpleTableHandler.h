@@ -183,9 +183,7 @@ SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std
 void SimpleTableHandler::open()
 {
     //read from header.bin
-    file_handler.open(false); 
-
-    
+    file_handler.open(false);
 
     //get from header
     set_entities(file_handler.get_entities());
@@ -287,13 +285,16 @@ void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must f
     bool find = list_tables().count(file_handler.get_data_name());
 
 
+
     const size_t offset = row_offset();
     size_t fsize = bin_fsize();
     size_t RRN = 0;
-    
+
+    std::cout << fsize << "\n";
+
     DataInterface *dt = nullptr;
     while(RRN < fsize){
-        if(!file_handler.eof_data()) break;
+        if(file_handler.eof_data()) break;
         vector<DataInterface*> row = read_row(RRN, true);
         for(int iCol = 0; iCol < get_total_entities(); iCol++) 
             map[iCol].insert({row[iCol]->toString(), RRN});
