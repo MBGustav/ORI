@@ -19,7 +19,7 @@ using std::vector, std::ios, std::set;
 namespace fs = std::filesystem;
 
 #ifndef DIR_TABLE
-    #define DIR_TABLE "./"
+    #define DIR_TABLE "./ScratchQL/FolderTables/"
 #endif
 
 typedef enum files_list {ALL, HEADERS_ONLY, TABLES_ONLY} files_list; 
@@ -32,6 +32,7 @@ typedef struct EntityProperties{
     EntityProperties(string _name="", DataType _type=TYPE_NULL,size_t id_col=0): 
         name(_name), type(_type),idx_col(id_col){};
 }EntityProperties;
+
 
 std::string get_name_filepath(const std::string& name_filepath, bool is_header) {
     std::string suffix = is_header ? "_header.bin" : "_data.bin";
@@ -191,12 +192,34 @@ public:
     string get_data_name() const{return data_filepath;}
 
 
-// vinculo com DataInterface
+// vinculo com SQLTable + DataInterface
     void write_data(DataInterface* data_ptr);
     void write_data(vector<DataInterface*> data_ptr);
     void read_data(DataInterface* data_ptr);
 };
 
+
+std::streampos FileHandler::tell_header() {return header_file.tellg();}
+
+std::streampos FileHandler::tell_data() {return data_file.tellg();}
+
+bool FileHandler::eof_header() const {return header_file.eof();}
+
+bool FileHandler::eof_data() const {return data_file.eof();}
+
+void FileHandler::open_data(std::ios::openmode mode){
+    ptr_file_open(data_file, data_filepath,std::ios::binary | mode);
+}
+
+void FileHandler::open_header(std::ios::openmode mode){
+    ptr_file_open(header_file, header_filepath,std::ios::binary | mode);
+}
+
+size_t FileHandler::row_offset(){
+    size_t ans = 0;
+    for(auto ptr : entities) ans += data_size(ptr.type);
+    return ans;
+}
 
 FileHandler::FileHandler(const string& filename_base,
                          ios::openmode header_mode,
@@ -237,6 +260,14 @@ FileHandler::FileHandler(const string& filename_base,
     
 }
 
+
+FileHandler::~FileHandler(){
+    if(is_temporary()) 
+        destroy();
+    else 
+        close();
+}
+
 bool FileHandler::valid_header(){
     bool val = false; 
     open_header(ios::out);
@@ -245,11 +276,6 @@ bool FileHandler::valid_header(){
     size_t min_required = 4 * sizeof(size_t);
     close();
     return min_required <= file_size;
-}
-size_t FileHandler::row_offset(){
-    size_t ans = 0;
-    for(auto ptr : entities) ans += data_size(ptr.type);
-    return ans;
 }
 
 size_t FileHandler::bin_fsize(){
@@ -267,7 +293,6 @@ vector<DataInterface*> FileHandler::read_row(size_t idx, bool is_RRN)
     size_t offset = idx * (is_RRN ? 1 : row_offset());
     seek_data(ios::beg, offset);
     size_t total_entities = get_total_entities();
-
 
     vector<DataInterface*> row(total_entities, nullptr);
 
@@ -305,22 +330,14 @@ void FileHandler::read_data(DataInterface* data_ptr) {
 }
 
 void FileHandler::ptr_file_open(std::fstream &file, const std::string& path, std::ios::openmode mode){    
-    
     // if(file.is_open()) file.close();
     file.open(path,ios::binary | mode);
-    std::cout << header_filepath << "\n";
-    
     if (!file.is_open())
         throw std::runtime_error("Falha ao abrir o arquivo: " + path);
     
 }
-void FileHandler::open_data(std::ios::openmode mode){
-    ptr_file_open(data_file, data_filepath,std::ios::binary | mode);
-}
 
-void FileHandler::open_header(std::ios::openmode mode){
-    ptr_file_open(header_file, header_filepath,std::ios::binary | mode);
-}
+
 void FileHandler::destroy(){
     close();
     std::remove(header_filepath.c_str());
@@ -329,12 +346,10 @@ void FileHandler::destroy(){
 
 void FileHandler::create(){
     ptr_file_open(header_file, header_filepath, ios::binary | ios::out);
-    std::cout << "data\n";
     ptr_file_open(data_file,   data_filepath,   ios::binary | ios::out);
 }
 
 void FileHandler::open(bool create_header){
-    
     set<string> tables = list_tables(HEADERS_ONLY);
     // 1. if exists, open
     if(tables.count(header_filepath)!= 0){
@@ -344,7 +359,6 @@ void FileHandler::open(bool create_header){
         return;
     }
     // 2. if not, create
-    std::cout <<"not found << " << this->header_filepath << "\n";
     if(create_header) create();
 }
 
@@ -368,23 +382,6 @@ void FileHandler::seek_data(std::ios::seekdir dir, std::streampos pos) {
     data_file.seekg(pos, dir);
 }
 
-std::streampos FileHandler::tell_header() {return header_file.tellg();}
-
-std::streampos FileHandler::tell_data() {return data_file.tellg();}
-
-bool FileHandler::eof_header() const {return header_file.eof();}
-
-bool FileHandler::eof_data() const {return data_file.eof();}
-
-// bool FileHandler::valid_insert(vector<DataInterface*> new_row) const{
-
-//     if(new_row.size() != get_total_entities()) return false;
-
-//     for(int i = 0; i < new_row.size(); i++) 
-//         if(new_row[i]->read_DataType() != entities[i].type) return false;
-//     return true;
-// }
-
 bool FileHandler::valid_insert(vector<DataInterface*> row) const{
     
     if(row.size() != get_total_entities()) 
@@ -395,8 +392,6 @@ bool FileHandler::valid_insert(vector<DataInterface*> row) const{
     }
     return true;
 }
-
-
 
 void FileHandler::write_header() {
     // if (!header_file.is_open()) {
@@ -432,6 +427,7 @@ void FileHandler::write_header() {
     }
     close();
 }
+
 void FileHandler::read_header() {
     
     if (!valid_header())
@@ -462,13 +458,6 @@ void FileHandler::read_header() {
         entities.push_back(EntityProperties(str.toString(),tmp_type, i));
     }
 }
-
-
-FileHandler::~FileHandler(){
-    if(is_temporary()) destroy();
-    else close();
-}
-
 
 
 #endif /*FILEHANDLER_H_*/

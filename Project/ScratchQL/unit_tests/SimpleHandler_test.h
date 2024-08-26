@@ -251,7 +251,7 @@ void read_table_test()
 
     //create table
     SimpleTableHandler GenericTable(file, entities, false);
-    std:cout << "cria\n";
+    
     vector<DataInterface*> row  = {
         dt_alloc(DataType::INT    , "123"), 
         dt_alloc(DataType::INT    , "5464"), 

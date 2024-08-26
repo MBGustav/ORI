@@ -8,7 +8,7 @@
 #include <fstream>
 #include <map>
 #include <iomanip>
-// #include <array>
+
 
 #include "FileHandler.h"
 #include "DataInterface.h"
@@ -21,26 +21,12 @@
 using std::pair, std::multimap, std::array;
 using std::ios, std::to_string;
 
-// typedef struct EntityProperties{
-//     string name;
-//     int idx_col;
-//     DataType type;
-
-//     //construtor
-//     EntityProperties(string _name="", DataType _type=TYPE_NULL,size_t id_col=0): 
-//         name(_name), type(_type),idx_col(id_col){};
-
-// }EntityProperties;
-
-
-// #define SIZE_TABLE_BUFFER (100)
 #define MAX_DISPLAY_ROW (10)
 
-//just for notation - deal with it later
+
 typedef string key_format;
 
-
-class SimpleTableHandler
+class SimpleTableHandler //TODO: renomear classe para - SQLTable
 {
 private:
     string Filename;    
@@ -48,15 +34,8 @@ private:
     multimap<key_format, size_t> map[10]; // TODO: Expand for more maps
     vector<EntityProperties> *prop;
 
-
-    // bool valid_insertion(vector<DataInterface*> row){
-    //     if(row.size() != get_total_entities()) return false;
-    //     vector<EntityProperties> entity = file_handler.get_entities();
-    //     for(int i = 0; i < row.size(); i++) if(row[i]->read_DataType() != entity) return false;
-    //     return true;
-    // }
     void open(); 
-    void update();
+    void write_row(vector<DataInterface*> row); //unsafe mode (no verification)
 
 public:
     void close(){file_handler.close();};
@@ -71,9 +50,10 @@ public:
                        bool temporary = true); 
 
 
-    SimpleTableHandler(vector<vector<DataInterface*>>, 
-                       std::string fname = "temp", 
-                       bool is_tmp = true); //result from a query
+    SimpleTableHandler(vector<vector<DataInterface*>> table,
+                       vector<EntityProperties> &prop,
+                       std::string fname,
+                       bool is_tmp );
 
 
     ~SimpleTableHandler(){file_handler.close();};
@@ -83,7 +63,6 @@ public:
     bool valid_skey(key_format pkey, string name_entity);
 
     //manipulations - row
-    void write_row(vector<DataInterface*> row);
     vector<DataInterface*> read_row(size_t row, bool is_RNN = false); 
     vector<DataInterface*> read_pkey(key_format pkey);
 
@@ -93,11 +72,7 @@ public:
     vector<EntityProperties> get_entities() const {return vector<EntityProperties>(file_handler.get_entities());}
 
     //setter
-    void set_entities(vector<EntityProperties> vec){
-        if(vec.data() == nullptr || vec.size() <= 0)
-            throw std::runtime_error("[ERROR] Fail to Read Entities\n");        
-        prop = &vec;
-    }
+    void set_entities(vector<EntityProperties> vec);
 
     //manipulations - file
     void read_file();
@@ -113,59 +88,56 @@ public:
     void display();
     int get_entity_idx(string name_entity) const;
     EntityProperties get_entity(string name_entity) const;
-    
-    vector<string> get_entity_names() const{
-        vector<string> entities_name;
-        for(auto itr : file_handler.get_entities())
-            entities_name.push_back(itr.name);
-        return entities_name;
-    }
+    vector<string> get_entity_names() const;
+
+
+    // Data Definition Language (DDL)
+    void alter();   // under construction
+    void drop();    // will delete your whole table, including all data,
+    void truncate();// Remove all data entries from a table while keeping structure
+
+    // Data Manipulation Language (DML)
+    bool insert(vector<string> row);                // adding a row of data  (safe mode)
+    bool insert(vector<DataInterface*> row);        // same typo             (safe mode)
+    bool insert(vector<vector<string>> row);        // to add multiple rows  (safe mode)
+    bool delete_pk(key_format primary_key);         // remove the row by id (or PK)
+    bool update(key_format pkey,string new_value);  // change values by pkey
+
+
+    // Transaction Control Language (TCL) i guess i cant...
+    void savepoint(); // Is it really necessary? 
+    void commit();    // Damn, thats hard
+    void rollback();  // I simply cant
+
+    // Data Query Language (DQL)
+    // This will be done in a SQLManager
+
 };
 
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
         Filename(filename), file_handler(filename, properties, temporary)
 {
-
-    
     set_entities(properties);
-
-    
-    // file_ptr.open(Filename.c_str(), std::ios::out);
-    // file_ptr.close();
 }
 
-//Hard-coded Example prop or check for existent file
+vector<string> SimpleTableHandler::get_entity_names() const{
+        vector<string> entities_name;
+        for(auto itr : file_handler.get_entities())
+            entities_name.push_back(itr.name);
+        return entities_name;
+    }
+
 SimpleTableHandler::SimpleTableHandler(std::string filename, bool temporary):
         Filename(filename), file_handler(filename, temporary)
 {
     open();
-
-    // vector<EntityProperties> prop = {
-    //     EntityProperties("CPF"   , DataType::STRING, 0),
-    //     EntityProperties("NOME"  , DataType::STRING, 1),
-    //     EntityProperties("IDADE" , DataType::INT   , 2),
-    //     EntityProperties("CIDADE", DataType::STRING, 3)
-    // };
-    // file_handler.set_entities(prop);
-
-    //set CPF as primary key
-
-    // primary_key = &prop[0];
-
 }
 
-SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table, std::string fname, bool is_tmp )
+SimpleTableHandler::SimpleTableHandler(vector<vector<DataInterface*>> table,vector<EntityProperties> &prop, std::string fname, bool is_tmp )
                     :Filename(fname), file_handler(Filename, is_tmp)
 {  
     
-    vector<EntityProperties> prop = {
-        EntityProperties("CPF"   , DataType::STRING, 0),
-        EntityProperties("NOME"  , DataType::STRING, 1),
-        EntityProperties("IDADE" , DataType::INT   , 2),
-        EntityProperties("CIDADE", DataType::STRING, 3)
-    };
-
-    //copy header
+    //set entity prop.
     file_handler.set_entities(prop);
 
     //write to file
@@ -190,7 +162,11 @@ void SimpleTableHandler::open()
     read_file();
 }
 
-
+void SimpleTableHandler::set_entities(vector<EntityProperties> vec){
+        if(vec.data() == nullptr || vec.size() <= 0)
+            throw std::runtime_error("[ERROR] Fail to Read Entities\n");        
+        prop = &vec;
+    }
 void SimpleTableHandler::write_row(vector<DataInterface*> row)
 {
     file_handler.write_data(row);
@@ -290,7 +266,6 @@ void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must f
     size_t fsize = bin_fsize();
     size_t RRN = 0;
 
-    std::cout << fsize << "\n";
 
     DataInterface *dt = nullptr;
     while(RRN < fsize){
@@ -324,7 +299,6 @@ size_t SimpleTableHandler::bin_fsize(){
 bool SimpleTableHandler::valid_pkey(key_format key){
     
     int entity_idx = 0;
-    std::cout << "map-size: " << map[entity_idx].size()<<"\n";
     
     if(map[entity_idx].find(key) == map[entity_idx].end())
         return false;
@@ -439,7 +413,6 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey(key_format key, str
         }
         table.push_back(row);
     }
-    // file_ptr.close();
 
     return table;
 } 

@@ -12,12 +12,11 @@ include_directories(include)
 # Integrate all .cpp files
 set(SQL_SOURCES 
 "src/DataInterface.cpp"
-# "src/Date.cpp"
 "src/DateHandler.cpp"
 "src/FloatHandler.cpp"
 "src/IntHandler.cpp"
 "src/StringHandler.cpp"
-# "src/HeaderHandler.cpp"
+"src/FileHandler.cpp"
 )
 
 # Link Files with the project
