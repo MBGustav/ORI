@@ -16,6 +16,8 @@
 #include "SimpleTableHandler.h"
 #include "FileHandler.h"
 
+void readTable();
+
 using namespace std;
 
 // Function to get user input for table structure
@@ -88,11 +90,7 @@ int main() {
             case 1 : createTableStructure();
             break;
             case 2 : {
-                cout << "Qual tabela deseja ler? "; //não funciona
-                string table_name;
-                getline(cin, table_name);
-                SimpleTableHandler test(table_name, {}, false);
-                test.display();
+                readTable();
                 break;
             }
             case 3 : {
@@ -115,6 +113,14 @@ int main() {
     }
 
     return 0;
+}
+
+void readTable() {
+    cout << "Digite o nome da tabela: ";
+    string table_name;
+    getline(cin, table_name); // Use getline to read the entire line
+    SimpleTableHandler test(table_name, false);
+    test.display();
 }
 
 

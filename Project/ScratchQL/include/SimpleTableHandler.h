@@ -261,23 +261,23 @@ void SimpleTableHandler::display(){
 
 void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must find a header
 {   
-    bool find = list_tables().count(file_handler.get_data_name());
+    bool find = file_handler.read_header(file_handler.get_header_name());
+
+    if(!find) throw std::runtime_error("[ERROR] Fail to Read Header\n");
 
 
-
-    const size_t offset = row_offset();
-    size_t fsize = bin_fsize();
+    //read from data.bin
     size_t RRN = 0;
+    while(RRN < file_handler.get_total_elements()){
+        vector<DataInterface*> row = file_handler.read_row(RRN, true);
+        if(row.size() != get_total_entities()) break;
 
-
-    DataInterface *dt = nullptr;
-    while(RRN < fsize){
-        if(file_handler.eof_data()) break;
-        vector<DataInterface*> row = read_row(RRN, true);
-        for(int iCol = 0; iCol < get_total_entities(); iCol++) 
-            map[iCol].insert({row[iCol]->toString(), RRN});
-        RRN += offset;
+        key_format key = row[0]->toString();
+        map[0].insert(pair<key_format, size_t>(key, RRN));
+        RRN++;
     }
+
+
 }
 
 

@@ -196,6 +196,8 @@ public:
     void write_data(DataInterface* data_ptr);
     void write_data(vector<DataInterface*> data_ptr);
     void read_data(DataInterface* data_ptr);
+
+    bool read_header(string header_path);
 };
 
 
@@ -457,6 +459,44 @@ void FileHandler::read_header() {
         header_file.read(reinterpret_cast<char*>(&tmp_type), sizeof(tmp_type));
         entities.push_back(EntityProperties(str.toString(),tmp_type, i));
     }
+}
+
+bool FileHandler::read_header(string header_path) {
+
+    bool val = false;
+
+    this->header_filepath = header_path;
+
+    if (!valid_header())
+        throw std::runtime_error("[ERROR] Invalid parameters for header, from file - " + get_header_name());
+
+    open_header(ios::in | ios::out);
+
+    val = true;
+
+    seek_header(ios::beg);
+    size_t total_elements, offset_row, offset_header, total_entities;
+    header_file.read(reinterpret_cast<char*>(&total_elements), sizeof(total_elements));
+    header_file.read(reinterpret_cast<char*>(&offset_row), sizeof(offset_row));
+    header_file.read(reinterpret_cast<char*>(&offset_header), sizeof(offset_header));
+    header_file.read(reinterpret_cast<char*>(&total_entities), sizeof(total_entities));
+
+    set_total_elements(total_elements);
+    set_offset_row(offset_row);
+    set_offset_header(offset_header);
+    set_total_entities(total_entities);
+
+    this->entities.clear();
+
+    DataType tmp_type;
+    StringHandler str;
+
+    for(size_t i = 0; i < total_entities; i++){
+        str.fread(header_file);
+        header_file.read(reinterpret_cast<char*>(&tmp_type), sizeof(tmp_type));
+        entities.push_back(EntityProperties(str.toString(),tmp_type, i));
+    }
+    return val;
 }
 
 
