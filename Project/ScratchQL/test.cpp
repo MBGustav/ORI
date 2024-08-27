@@ -114,7 +114,7 @@ int main() {
 
 void mostrartabelas() {
     cout << "Tabelas disponiveis: " << endl;
-    auto list = list_tables(TABLES_ONLY);
+    auto list = list_tables(HEADERS_ONLY);
     for (const auto &table : list) {
         cout << table << endl;
     }

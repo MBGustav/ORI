@@ -90,17 +90,30 @@ std::set<string> list_tables(files_list filter = ALL)
 {
     fs::path path = DIR_TABLE;
     std::set<string> table_list;
-    for (const auto & entry : fs::directory_iterator(path)){
+
+    for (const auto & entry : fs::directory_iterator(path)) {
         bool condition = false;
         string file_name = entry.path().string();
-        switch (filter){
-            case files_list::ALL:{ condition = true;}
-            case files_list::HEADERS_ONLY:{condition = file_name.find("header.bin");break;}
-            case files_list::TABLES_ONLY:{condition = file_name.find("data.bin");break;}
-            default: continue;
+
+        switch (filter) {
+            case files_list::ALL:
+                condition = true;
+                break;
+            case files_list::HEADERS_ONLY:
+                condition = file_name.find("header.bin") != string::npos; // Verifica se contém "header.bin"
+                break;
+            case files_list::TABLES_ONLY:
+                condition = file_name.find("data.bin") != string::npos; // Verifica se contém "data.bin"
+                break;
+            default:
+                continue; // Continue se o filtro for inválido
         }
-        if(condition) table_list.insert(file_name);
+
+        if (condition) {
+            table_list.insert(file_name);
+        }
     }
+
     return table_list;
 }
 
