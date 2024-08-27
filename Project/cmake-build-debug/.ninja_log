@@ -53,3 +53,7 @@
 5710	5854	7464798340532125	C:/Users/enzod/Desktop/ORI/Project/unit_test.exe	accae8bd878acb21
 9	4362	7464799576749509	CMakeFiles/unit_test.dir/ScratchQL/test.cpp.obj	a6af802d3ed64481
 4362	4534	7464799620277288	C:/Users/enzod/Desktop/ORI/Project/unit_test.exe	accae8bd878acb21
+7	1852	7464803961085413	ScratchQL/CMakeFiles/ScratchQL_lib.dir/src/FileHandler.cpp.obj	1e91ceac88801a08
+1852	1960	7464803979438010	libScratchQL_lib.a	437f7f385824ea9b
+15	3302	7464803961085413	CMakeFiles/unit_test.dir/ScratchQL/test.cpp.obj	a6af802d3ed64481
+3302	3482	7464803994051813	C:/Users/enzod/Desktop/ORI/Project/unit_test.exe	accae8bd878acb21

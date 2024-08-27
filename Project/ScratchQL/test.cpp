@@ -80,7 +80,7 @@ int main() {
     int sup = 0;
     while(sup != 99){
         cout<< "Caso queira escrever uma nova tabela digite 1."
-               "\n caso queria ler a sua tabela digite 2(Não implementado)\n."
+               "\n caso queria ler a sua tabela digite 2\n."
                "caso queira atualizar a sua tabela digite 3(não implementado)\n."
                "caso queira deletar a sua tabela digite 4\n."
                "caso queira sair digite 99: ";
