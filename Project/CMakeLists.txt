@@ -34,7 +34,7 @@ include_directories(ScratchQL/include)
 
 # Folder where we store the Tables
 include_directories(FolderTables)
-add_executable(unit_test "ScratchQL/unit_tests/unit_test.cpp")
+add_executable(unit_test "ScratchQL/test.cpp")
 set_target_properties(unit_test
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY
     "${CMAKE_CURRENT_SOURCE_DIR}")
