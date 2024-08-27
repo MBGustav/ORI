@@ -324,7 +324,7 @@ vector<DataInterface*> SimpleTableHandler::read_pkey(key_format key){
 
     if(!valid_pkey(key))
         return vector<DataInterface*>(get_total_entities(), nullptr);
-    
+
 
     size_t RRN = map[0].find(key)->second;
 
@@ -357,7 +357,7 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey_greater(key_format 
         RRN_list.push_back(upper_range->second);
         upper_range++;
     }
-    
+
 
     sort(RRN_list.begin(), RRN_list.end());
 
@@ -385,7 +385,7 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey(key_format key, str
         std::cout << "[ERROR] sec. Key not found\n";
         return vector<vector<DataInterface*>>();
     }
-    
+
     const int idx = get_entity(name_entity).idx_col;
     vector<vector<DataInterface*>> table;
     vector<DataInterface*> row;
@@ -403,11 +403,11 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey(key_format key, str
         RRN_list.push_back(it->second);
     }
 
-    vector<EntityProperties> vec_prop = get_entities();    
+    vector<EntityProperties> vec_prop = get_entities();
     for(auto rrn: RRN_list)
     {
         file_handler.seek_data(ios::beg, rrn);
-        
+
         std::vector<DataInterface*> row;
         for(int i = 0; i < get_total_entities(); i++){
             DataInterface* data_ptr = dt_alloc(vec_prop[i].type);

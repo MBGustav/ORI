@@ -1,22 +1,18 @@
-#include <fstream>
+
 #include <string>
 #include <vector>
-#include <filesystem>
 #include <set>
 #include <iostream>
-#include <memory>
 #include <limits>
-
 #include "HeaderHandler.h"
 #include "DataInterface.h"
-#include "FloatHandler.h"
-#include "IntHandler.h"
-#include "StringHandler.h"
-#include "DateHandler.h"
 #include "SimpleTableHandler.h"
 #include "FileHandler.h"
 
 void readTable();
+
+void mostrartabelas();
+
 
 using namespace std;
 
@@ -79,10 +75,10 @@ void createTableStructure() {
 int main() {
     int sup = 0;
     while(sup != 99){
-        cout<< "Caso queira escrever uma nova tabela digite 1."
-               "\n caso queria ler a sua tabela digite 2\n."
-               "caso queira atualizar a sua tabela digite 3(não implementado)\n."
-               "caso queira deletar a sua tabela digite 4\n."
+        cout<< "Caso queira escrever uma nova tabela digite 1.\n"
+               "caso queira ler sua tabela ou fazer pesquisas nela digite 2.\n"
+               "caso queira atualizar a sua tabela digite 3(não implementado).\n"
+               "caso queira deletar a sua tabela digite 4.\n"
                "caso queira sair digite 99: ";
         cin >> sup;
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear input buffer
@@ -90,12 +86,12 @@ int main() {
             case 1 : createTableStructure();
             break;
             case 2 : {
+                mostrartabelas();
                 readTable();
                 break;
             }
             case 3 : {
-                //SimpleTableHandler test("test", {}, false);
-                //test.update();
+                //desenvolver função para uptade.
                 break;
             }
             case 4 : {
@@ -115,12 +111,71 @@ int main() {
     return 0;
 }
 
+
+void mostrartabelas() {
+    cout << "Tabelas disponiveis: " << endl;
+    auto list = list_tables(TABLES_ONLY);
+    for (const auto &table : list) {
+        cout << table << endl;
+    }
+
+}
+
 void readTable() {
     cout << "Digite o nome da tabela: ";
     string table_name;
     getline(cin, table_name); // Use getline to read the entire line
     SimpleTableHandler test(table_name, false);
     test.display();
+    //seleciona por indice primario ou secundario
+    cout << "Quer pesquisar por indice primario ou secundario? (1: primario, 2: secundario , 3: sair): ";
+    int tipo;
+    string valor;
+    cin >> tipo;
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear input buffer
+    if(tipo == 1){
+        cout << "Digite o valor do indice primario: \n";
+        getline(cin, valor);
+        auto row = test.read_pkey(valor);
+        if (row.empty()) {
+            cout << "Nenhum registro encontrado" << endl;
+        } else {
+            int numero_coluna = 1;
+            cout << "Registro encontrado: " << endl;
+            for (const auto &data : row) {
+                cout << "Valor da Coluna " << numero_coluna << " == " << data->toString() << " ";
+                numero_coluna++;
+            }
+        }
+    }else if(tipo == 2){
+        string coluna;
+        cout<< "Digite o nome da Coluna que deseja fazer uma pesquisa: "<<endl;
+        getline(cin, coluna);
+        cout<< "Digite o valor que deseja pesquisar: "<<endl;
+        getline(cin, valor);
+        vector<vector<DataInterface *>> rows;
+        rows = test.read_skey(valor, coluna);
+        if (rows.empty()) {
+            cout << "Nenhum registro encontrado" << endl;
+        } else {
+            cout << "Registros encontrados: " << endl;
+            int numero_coluna;
+            int numero_linha = 1;
+            for (const auto &row : rows) {
+                cout << "Linha " << numero_linha << ": ";
+                numero_linha++;
+                numero_coluna = 1;
+                for (const auto &data : row) {
+                    cout << "Valor da Coluna " << numero_coluna << " == " << data->toString() << " ";
+                    numero_coluna++;
+                }
+            }
+        }
+    }else if(tipo == 3){
+        return;
+    }else{
+        cout << "Opção inválida. Saindo.." << endl;
+    }
 }
 
 
