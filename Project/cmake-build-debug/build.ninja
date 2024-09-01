@@ -217,12 +217,12 @@ build ContinuousSubmit: phony CMakeFiles/ContinuousSubmit
 
 build cmake_object_order_depends_target_unit_test: phony || cmake_object_order_depends_target_ScratchQL_lib
 
-build CMakeFiles/unit_test.dir/ScratchQL/test.cpp.obj: CXX_COMPILER__unit_test_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/test.cpp || cmake_object_order_depends_target_unit_test
-  DEP_FILE = CMakeFiles\unit_test.dir\ScratchQL\test.cpp.obj.d
+build CMakeFiles/unit_test.dir/ScratchQL/unit_tests/unit_test.cpp.obj: CXX_COMPILER__unit_test_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/unit_tests/unit_test.cpp || cmake_object_order_depends_target_unit_test
+  DEP_FILE = CMakeFiles\unit_test.dir\ScratchQL\unit_tests\unit_test.cpp.obj.d
   FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
   INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/FolderTables
   OBJECT_DIR = CMakeFiles\unit_test.dir
-  OBJECT_FILE_DIR = CMakeFiles\unit_test.dir\ScratchQL
+  OBJECT_FILE_DIR = CMakeFiles\unit_test.dir\ScratchQL\unit_tests
 
 
 # =============================================================================
@@ -232,7 +232,7 @@ build CMakeFiles/unit_test.dir/ScratchQL/test.cpp.obj: CXX_COMPILER__unit_test_u
 #############################################
 # Link the executable C:\Users\enzod\Desktop\ORI\Project\unit_test.exe
 
-build C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe: CXX_EXECUTABLE_LINKER__unit_test_Debug CMakeFiles/unit_test.dir/ScratchQL/test.cpp.obj | libScratchQL_lib.a || libScratchQL_lib.a
+build C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe: CXX_EXECUTABLE_LINKER__unit_test_Debug CMakeFiles/unit_test.dir/ScratchQL/unit_tests/unit_test.cpp.obj | libScratchQL_lib.a || libScratchQL_lib.a
   FLAGS = -O3 -march=native -ftree-vectorize -g
   LINK_LIBRARIES = libScratchQL_lib.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\unit_test.dir
