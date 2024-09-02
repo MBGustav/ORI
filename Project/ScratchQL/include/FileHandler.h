@@ -45,20 +45,20 @@ DataInterface *dt_alloc(DataType type, string data="")
     DataInterface *ptr = nullptr;
 
     switch (type){
-        case DataType::DATE:{
+        case DataType::DATA_DATE:{
             ptr = new DateHandler();
             break;
         }
-        case DataType::INT:{
+        case DataType::DATA_INT:{
             ptr = new IntHandler();
             break;
         }
 
-        case DataType::STRING:{
+        case DataType::DATA_STRING:{
             ptr = new StringHandler();
             break;
         }
-        case DataType::FLOAT:{
+        case DataType::DATA_FLOAT:{
             ptr = new FloatHandler();
             break;
         }
@@ -75,10 +75,10 @@ DataInterface *dt_alloc(DataType type, string data="")
 
 size_t data_size(DataType type){
     switch (type){
-        case DataType::DATE     : return DateHandler().bin_size();
-        case DataType::INT      : return IntHandler().bin_size();
-        case DataType::STRING   : return StringHandler().bin_size();
-        case DataType::FLOAT    : return FloatHandler().bin_size();
+        case DataType::DATA_DATE     : return DateHandler().bin_size();
+        case DataType::DATA_INT      : return IntHandler().bin_size();
+        case DataType::DATA_STRING   : return StringHandler().bin_size();
+        case DataType::DATA_FLOAT    : return FloatHandler().bin_size();
         case DataType::TYPE_NULL: default: break;
     }
     throw std::runtime_error("[ERROR] Fail to figure out which type is");

@@ -2,12 +2,7 @@
 cmake_minimum_required(VERSION 3.22)
 
 # Compiler(s)
-# set(CMAKE_CXX_COMPILER g++)
-set(CMAKE_CXX_FLAGS  "-O3 -march=native -ftree-vectorize")
-
-# set(CMAKE_CXX_COMPILER clang++)
-
-
+set(CMAKE_CXX_FLAGS "-O3 -march=native -ftree-vectorize")
 
 # Proj Name
 project(ScratchQL LANGUAGES C CXX)
@@ -17,7 +12,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
-
 # enable testing in the project
 include(CTest)
 enable_testing()
@@ -26,22 +20,28 @@ enable_testing()
 add_subdirectory(ScratchQL)
 include_directories(ScratchQL/include)
 
+# Adicione ImGui como subdiretório
+add_subdirectory(imgui)
 
-# Add Interpreter /*TODO*/
-# add_subdirectory(Interpreter)
-# include_directories(Interpreter/include)
+# Crie o executável unit_test
+add_executable(unit_test "ScratchQL/interface.cpp")
 
+# Defina as dependências
+target_link_libraries(unit_test PRIVATE
+        ScratchQL_lib
+        imgui
+        d3d11
+        d3dcompiler
+        dwmapi
+        dxguid
+        comctl32
+)
 
 # Folder where we store the Tables
 include_directories(FolderTables)
-add_executable(unit_test "ScratchQL/unit_tests/unit_test.cpp")
-set_target_properties(unit_test
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-    "${CMAKE_CURRENT_SOURCE_DIR}")
-    target_link_libraries(unit_test PRIVATE
-    ScratchQL_lib
-)
 
+# Defina o diretório de saída para o executável
+set_target_properties(unit_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 # add_executable(cli_interface "ScratchQL/test.cpp")
 # set_target_properties(cli_interface
 #     PROPERTIES RUNTIME_OUTPUT_DIRECTORY

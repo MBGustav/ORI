@@ -23,7 +23,7 @@ DateHandler::DateHandler(int month, int day, int year)
 }
 DateHandler::DateHandler(){}
 
-DataType DateHandler::read_DataType() const {return DataType::DATE;}
+DataType DateHandler::read_DataType() const {return DataType::DATA_DATE;}
 
 DateHandler::DateHandler(DateHandler &date) 
 {

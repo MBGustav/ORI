@@ -215,14 +215,14 @@ build ContinuousSubmit: phony CMakeFiles/ContinuousSubmit
 #############################################
 # Order-only phony target for unit_test
 
-build cmake_object_order_depends_target_unit_test: phony || cmake_object_order_depends_target_ScratchQL_lib
+build cmake_object_order_depends_target_unit_test: phony || cmake_object_order_depends_target_ScratchQL_lib cmake_object_order_depends_target_imgui
 
-build CMakeFiles/unit_test.dir/ScratchQL/unit_tests/unit_test.cpp.obj: CXX_COMPILER__unit_test_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/unit_tests/unit_test.cpp || cmake_object_order_depends_target_unit_test
-  DEP_FILE = CMakeFiles\unit_test.dir\ScratchQL\unit_tests\unit_test.cpp.obj.d
+build CMakeFiles/unit_test.dir/ScratchQL/interface.cpp.obj: CXX_COMPILER__unit_test_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/interface.cpp || cmake_object_order_depends_target_unit_test
+  DEP_FILE = CMakeFiles\unit_test.dir\ScratchQL\interface.cpp.obj.d
   FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/FolderTables
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/FolderTables -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
   OBJECT_DIR = CMakeFiles\unit_test.dir
-  OBJECT_FILE_DIR = CMakeFiles\unit_test.dir\ScratchQL\unit_tests
+  OBJECT_FILE_DIR = CMakeFiles\unit_test.dir\ScratchQL
 
 
 # =============================================================================
@@ -232,9 +232,9 @@ build CMakeFiles/unit_test.dir/ScratchQL/unit_tests/unit_test.cpp.obj: CXX_COMPI
 #############################################
 # Link the executable C:\Users\enzod\Desktop\ORI\Project\unit_test.exe
 
-build C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe: CXX_EXECUTABLE_LINKER__unit_test_Debug CMakeFiles/unit_test.dir/ScratchQL/unit_tests/unit_test.cpp.obj | libScratchQL_lib.a || libScratchQL_lib.a
+build C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe: CXX_EXECUTABLE_LINKER__unit_test_Debug CMakeFiles/unit_test.dir/ScratchQL/interface.cpp.obj | libScratchQL_lib.a libimgui.a || libScratchQL_lib.a libimgui.a
   FLAGS = -O3 -march=native -ftree-vectorize -g
-  LINK_LIBRARIES = libScratchQL_lib.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = libScratchQL_lib.a  libimgui.a  -ld3d11  -ld3dcompiler  -ldwmapi  -ldxguid  -lcomctl32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\unit_test.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
@@ -609,9 +609,125 @@ build ScratchQL/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
 build ScratchQL/rebuild_cache: phony ScratchQL/CMakeFiles/rebuild_cache.util
 
 # =============================================================================
+# Write statements declared in CMakeLists.txt:
+# C:/Users/enzod/Desktop/ORI/Project/CMakeLists.txt
+# =============================================================================
+
+# =============================================================================
+# Object build statements for STATIC_LIBRARY target imgui
+
+
+#############################################
+# Order-only phony target for imgui
+
+build cmake_object_order_depends_target_imgui: phony || imgui/CMakeFiles/imgui.dir
+
+build imgui/CMakeFiles/imgui.dir/imgui.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/imgui.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\imgui.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir
+
+build imgui/CMakeFiles/imgui.dir/imgui_draw.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/imgui_draw.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\imgui_draw.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir
+
+build imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/imgui_widgets.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\imgui_widgets.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir
+
+build imgui/CMakeFiles/imgui.dir/imgui_tables.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/imgui_tables.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\imgui_tables.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir
+
+build imgui/CMakeFiles/imgui.dir/imgui_demo.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/imgui_demo.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\imgui_demo.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir
+
+build imgui/CMakeFiles/imgui.dir/backends/imgui_impl_win32.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/backends/imgui_impl_win32.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\backends\imgui_impl_win32.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir\backends
+
+build imgui/CMakeFiles/imgui.dir/backends/imgui_impl_dx11.cpp.obj: CXX_COMPILER__imgui_unscanned_Debug C$:/Users/enzod/Desktop/ORI/Project/imgui/backends/imgui_impl_dx11.cpp || cmake_object_order_depends_target_imgui
+  DEP_FILE = imgui\CMakeFiles\imgui.dir\backends\imgui_impl_dx11.cpp.obj.d
+  FLAGS = -O3 -march=native -ftree-vectorize -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/enzod/Desktop/ORI/Project/ScratchQL/include -IC:/Users/enzod/Desktop/ORI/Project/imgui -IC:/Users/enzod/Desktop/ORI/Project/imgui/backends
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  OBJECT_FILE_DIR = imgui\CMakeFiles\imgui.dir\backends
+
+
+# =============================================================================
+# Link build statements for STATIC_LIBRARY target imgui
+
+
+#############################################
+# Link the static library libimgui.a
+
+build libimgui.a: CXX_STATIC_LIBRARY_LINKER__imgui_Debug imgui/CMakeFiles/imgui.dir/imgui.cpp.obj imgui/CMakeFiles/imgui.dir/imgui_draw.cpp.obj imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.obj imgui/CMakeFiles/imgui.dir/imgui_tables.cpp.obj imgui/CMakeFiles/imgui.dir/imgui_demo.cpp.obj imgui/CMakeFiles/imgui.dir/backends/imgui_impl_win32.cpp.obj imgui/CMakeFiles/imgui.dir/backends/imgui_impl_dx11.cpp.obj
+  LANGUAGE_COMPILE_FLAGS = -O3 -march=native -ftree-vectorize -g
+  OBJECT_DIR = imgui\CMakeFiles\imgui.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_FILE = libimgui.a
+  TARGET_PDB = imgui.a.dbg
+
+
+#############################################
+# Utility command for test
+
+build imgui/CMakeFiles/test.util: CUSTOM_COMMAND
+  COMMAND = C:\windows\system32\cmd.exe /C "cd /D C:\Users\enzod\Desktop\ORI\Project\cmake-build-debug\imgui && "C:\Program Files\JetBrains\CLion 2024.1\bin\cmake\win\x64\bin\ctest.exe" --force-new-ctest-process "
+  DESC = Running tests...
+  pool = console
+  restat = 1
+
+build imgui/test: phony imgui/CMakeFiles/test.util
+
+
+#############################################
+# Utility command for edit_cache
+
+build imgui/CMakeFiles/edit_cache.util: CUSTOM_COMMAND
+  COMMAND = C:\windows\system32\cmd.exe /C "cd /D C:\Users\enzod\Desktop\ORI\Project\cmake-build-debug\imgui && "C:\Program Files\JetBrains\CLion 2024.1\bin\cmake\win\x64\bin\cmake.exe" -E echo "No interactive CMake dialog available.""
+  DESC = No interactive CMake dialog available...
+  restat = 1
+
+build imgui/edit_cache: phony imgui/CMakeFiles/edit_cache.util
+
+
+#############################################
+# Utility command for rebuild_cache
+
+build imgui/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
+  COMMAND = C:\windows\system32\cmd.exe /C "cd /D C:\Users\enzod\Desktop\ORI\Project\cmake-build-debug\imgui && "C:\Program Files\JetBrains\CLion 2024.1\bin\cmake\win\x64\bin\cmake.exe" --regenerate-during-build -SC:\Users\enzod\Desktop\ORI\Project -BC:\Users\enzod\Desktop\ORI\Project\cmake-build-debug"
+  DESC = Running CMake to regenerate build system...
+  pool = console
+  restat = 1
+
+build imgui/rebuild_cache: phony imgui/CMakeFiles/rebuild_cache.util
+
+# =============================================================================
 # Target aliases.
 
 build ScratchQL_lib: phony libScratchQL_lib.a
+
+build imgui: phony libimgui.a
 
 build unit_test: phony C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe
 
@@ -625,7 +741,7 @@ build unit_test.exe: phony C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe
 #############################################
 # Folder: C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug
 
-build all: phony C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe ScratchQL/all
+build all: phony C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe ScratchQL/all imgui/all
 
 # =============================================================================
 
@@ -635,20 +751,27 @@ build all: phony C$:/Users/enzod/Desktop/ORI/Project/unit_test.exe ScratchQL/all
 build ScratchQL/all: phony libScratchQL_lib.a
 
 # =============================================================================
+
+#############################################
+# Folder: C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/imgui
+
+build imgui/all: phony libimgui.a
+
+# =============================================================================
 # Built-in targets
 
 
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTest.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestTargets.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestUseLaunchers.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/DartConfiguration.tcl.in C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/enzod/Desktop/ORI/Project/CMakeLists.txt C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.6/CMakeCCompiler.cmake CMakeFiles/3.28.6/CMakeCXXCompiler.cmake CMakeFiles/3.28.6/CMakeRCCompiler.cmake CMakeFiles/3.28.6/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTest.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestTargets.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestUseLaunchers.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/DartConfiguration.tcl.in C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/enzod/Desktop/ORI/Project/CMakeLists.txt C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/CMakeLists.txt C$:/Users/enzod/Desktop/ORI/Project/imgui/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.6/CMakeCCompiler.cmake CMakeFiles/3.28.6/CMakeCXXCompiler.cmake CMakeFiles/3.28.6/CMakeRCCompiler.cmake CMakeFiles/3.28.6/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTest.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestTargets.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestUseLaunchers.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/DartConfiguration.tcl.in C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/enzod/Desktop/ORI/Project/CMakeLists.txt C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.6/CMakeCCompiler.cmake CMakeFiles/3.28.6/CMakeCXXCompiler.cmake CMakeFiles/3.28.6/CMakeRCCompiler.cmake CMakeFiles/3.28.6/CMakeSystem.cmake: phony
+build C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCXXInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeCommonLanguageInclude.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeGenericSystem.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeInitializeConfigs.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeLanguageInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeRCInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInformation.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CMakeSystemSpecificInitialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTest.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestTargets.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/CTestUseLaunchers.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Compiler/GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/DartConfiguration.tcl.in C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-C.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX-ABI.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU-CXX.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-GNU.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-Initialize.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows-windres.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/Windows.cmake C$:/Program$ Files/JetBrains/CLion$ 2024.1/bin/cmake/win/x64/share/cmake-3.28/Modules/Platform/WindowsPaths.cmake C$:/Users/enzod/Desktop/ORI/Project/CMakeLists.txt C$:/Users/enzod/Desktop/ORI/Project/ScratchQL/CMakeLists.txt C$:/Users/enzod/Desktop/ORI/Project/imgui/CMakeLists.txt CMakeCache.txt CMakeFiles/3.28.6/CMakeCCompiler.cmake CMakeFiles/3.28.6/CMakeCXXCompiler.cmake CMakeFiles/3.28.6/CMakeRCCompiler.cmake CMakeFiles/3.28.6/CMakeSystem.cmake: phony
 
 
 #############################################

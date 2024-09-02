@@ -261,6 +261,15 @@ CTEST_SUBMIT_RETRY_DELAY:STRING=5
 //Maximum time allowed before CTest will kill the test.
 DART_TESTING_TIMEOUT:STRING=1500
 
+//Value Computed by CMake
+ImGui_BINARY_DIR:STATIC=C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/imgui
+
+//Value Computed by CMake
+ImGui_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+ImGui_SOURCE_DIR:STATIC=C:/Users/enzod/Desktop/ORI/Project/imgui
+
 //Command to build the project
 MAKECOMMAND:STRING="C:\Program Files\JetBrains\CLion 2024.1\bin\cmake\win\x64\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
 
@@ -387,7 +396,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=2
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=3
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

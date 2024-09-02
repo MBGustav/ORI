@@ -7,6 +7,10 @@
 #include "DataInterface.h"
 #include "SimpleTableHandler.h"
 #include "FileHandler.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
+
 
 void readTable();
 

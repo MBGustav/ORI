@@ -34,3 +34,7 @@ C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/ScratchQL/CMakeFiles/Scratc
 C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/ScratchQL/CMakeFiles/test.dir
 C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/ScratchQL/CMakeFiles/edit_cache.dir
 C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/ScratchQL/CMakeFiles/rebuild_cache.dir
+C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/imgui/CMakeFiles/imgui.dir
+C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/imgui/CMakeFiles/test.dir
+C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/imgui/CMakeFiles/edit_cache.dir
+C:/Users/enzod/Desktop/ORI/Project/cmake-build-debug/imgui/CMakeFiles/rebuild_cache.dir

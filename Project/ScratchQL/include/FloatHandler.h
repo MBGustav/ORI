@@ -40,7 +40,7 @@ float FloatHandler::get_value() const{return _data;}
 
 size_t FloatHandler::bin_size(){return sizeof(float);}
 
-DataType FloatHandler::read_DataType() const { return DataType::FLOAT;}
+DataType FloatHandler::read_DataType() const { return DataType::DATA_FLOAT;}
 
 void FloatHandler::set_value(float val){this->_data = val;}
 

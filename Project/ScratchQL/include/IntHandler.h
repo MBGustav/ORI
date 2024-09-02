@@ -39,7 +39,7 @@ size_t IntHandler::bin_size(){return sizeof(int);}
 
 int IntHandler::get_value() const{return _data;}
 
-DataType IntHandler::read_DataType()const {return DataType::INT;}
+DataType IntHandler::read_DataType()const {return DataType::DATA_INT;}
 
 void IntHandler::set_value(int val){this->_data = val;}
 
