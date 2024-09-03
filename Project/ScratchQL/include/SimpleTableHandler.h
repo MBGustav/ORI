@@ -91,7 +91,7 @@ public:
     EntityProperties get_entity(string name_entity) const;
     vector<string> get_entity_names() const;
 
-    static void delete_table(string table_name);
+    static bool delete_table(string table_name);
 
 
     // Data Definition Language (DDL)
@@ -421,7 +421,8 @@ vector<vector<DataInterface*>> SimpleTableHandler::read_skey(key_format key, str
 }
 
 
-void SimpleTableHandler::delete_table(string table_name) {
+bool SimpleTableHandler::delete_table(string table_name) {
+    bool success = false;
     string folder_path = "ScratchQL\\FolderTables\\"; // Caminho da pasta
     string table_header = folder_path + table_name +  "_header.bin";
     table_name = folder_path + table_name + "_data.bin";
@@ -431,10 +432,13 @@ void SimpleTableHandler::delete_table(string table_name) {
         std::filesystem::remove(table_name);
         std::filesystem::remove(table_header);
         std::cout << "Tabela " << table_name << " deletada com sucesso." << std::endl;
+        success = true;
     } else {
         std::cout << "Tabela " << table_name << " nao encontrada." << std::endl;
         std::cout << "Header" << table_header << " nao encontrada." << std::endl;
     }
+
+    return success;
 }
 
 #endif /*SIMPLETABLEHANDLER_H*/

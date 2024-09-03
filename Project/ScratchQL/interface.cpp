@@ -15,7 +15,7 @@
 // Function declarations
 void readTable();
 void mostrartabelas();
-void createTable(char name[128], vector <EntityProperties> vector1, int rows);
+void createTable(const char *name, const vector <EntityProperties>& vector1, int &rows);
 void showCreateTableWindow();
 void showMainMenu();
 
@@ -33,6 +33,8 @@ ID3D11Device* device = nullptr;
 ID3D11DeviceContext* device_context = nullptr;
 IDXGISwapChain* swap_chain = nullptr;
 ID3D11RenderTargetView* render_target_view = nullptr;
+
+bool static tableCreated = false;
 
 // Forward declaration of helper functions
 bool CreateDeviceD3D(HWND hWnd);
@@ -205,59 +207,37 @@ void showCreateTableWindow() {
 
     for (size_t i = 0; i < column_names.size(); ++i) {
         char column_name[128] = "";
-        string collumn_nameFinal;
         strncpy(column_name, column_names[i].c_str(), sizeof(column_name));
         ImGui::InputText(("Column Name " + to_string(i + 1)).c_str(),
                          column_name, sizeof(column_name), ImGuiInputTextFlags_CharsNoBlank);
-        collumn_nameFinal = column_name;
-        column_names[i] = collumn_nameFinal;
-        ImGui::Combo(("Data Type " + to_string(i + 1)).c_str(), &data_types[i], "FLOAT\0STRING\0INT\0DATE\0");
-        DataType type = static_cast<DataType>(data_types[i]);
-        columns[i].type = type;
+        string column_name_str(column_name);
+        column_names[i] = column_name_str;
+        ImGui::Combo(("Data Type " + to_string(i + 1)).c_str(), &data_types[i], "\0FLOAT\0STRING\0INT\0DATE\0");
     }
 
 
-
-    ImGui::InputInt("Number of Rows", &num_rows);
-
-
-    if (ImGui::Button("Criar Tabela")) {
+    if (ImGui::Button("Create Table")) {
         for (size_t i = 0; i < column_names.size(); ++i) {
             columns[i].name = column_names[i];
             columns[i].type = static_cast<DataType>(data_types[i]);
         }
-
         createTable(table_name, columns, num_rows);
+        tableCreated = true; // Define que a tabela foi criada
     }
 
-
+    // Exibe a mensagem de sucesso se a tabela foi criada
+    if (tableCreated) {
+        ImGui::Text("Tabela criada com sucesso");
+    }
 
     ImGui::End();
 }
 
-void createTable(char name[128], vector <EntityProperties> vector1, int rows) {
-    string name_final = name;
-    SimpleTableHandler test(name_final, vector1, false);
-    for (size_t i = 0; i < rows; ++i) {
-        vector<DataInterface *> row;
-        for (const auto &column : vector1) {
-            std::string input_final;
-            char input[64] = "";
-            ImGui::InputText(("Valor para " + column.name).c_str(), input, ImGuiInputTextFlags_CharsNoBlank);
+void createTable(const char *name, const vector <EntityProperties>& vector1, int &rows) {
+    // Create table with the given name and columns
+    SimpleTableHandler test(name,false);
 
-            input_final = input;
-
-            // Allocate the appropriate DataInterface based on the data type
-            row.push_back(dt_alloc(column.type, input_final));
-        }
-        test.write_row(row);
-
-        // Clean up dynamically allocated memory
-        for (auto ptr : row) {
-            delete ptr;
-        }
-    }
-
+    ImGui::Text("Tabela criada com sucesso");
     test.display();
     std::remove(name);
 }
@@ -267,10 +247,10 @@ void showMainMenu() {
 
     static int option = 0;
     ImGui::Text("Escolha uma opção:");
-    ImGui::RadioButton("Criar nova tabela", &option, 1);
+    ImGui::RadioButton("CREATE TABLE", &option, 1);
     ImGui::RadioButton("Ler tabela", &option, 2);
     ImGui::RadioButton("Atualizar tabela (não implementado)", &option, 3);
-    ImGui::RadioButton("Deletar tabela", &option, 4);
+    ImGui::RadioButton("DELETE TABLE", &option, 4);
     ImGui::RadioButton("Sair", &option, 99);
 
     if (option == 1) {
@@ -281,7 +261,12 @@ void showMainMenu() {
     } else if (option == 4) {
         ImGui::InputText("Qual tabela deseja deletar?", table_name, sizeof(table_name), ImGuiInputTextFlags_CharsNoBlank);
         if (ImGui::Button("Deletar")) {
-            SimpleTableHandler::delete_table(table_name);
+            if(SimpleTableHandler::delete_table(table_name)){
+                ImGui::TextLink("Tabela deletada com sucesso");
+            } else {
+                ImGui::TextLink("Tabela não encontrada");
+            }
+
         }
     }
 
