@@ -212,7 +212,7 @@ void showCreateTableWindow() {
                          column_name, sizeof(column_name), ImGuiInputTextFlags_CharsNoBlank);
         string column_name_str(column_name);
         column_names[i] = column_name_str;
-        ImGui::Combo(("Data Type " + to_string(i + 1)).c_str(), &data_types[i], "\0FLOAT\0STRING\0INT\0DATE\0");
+        ImGui::Combo(("Data Type " + to_string(i + 1)).c_str(), &data_types[i], "Type_NULL\0FLOAT\0STRING\0INT\0DATE\0");
     }
 
 
