@@ -3,13 +3,15 @@
 #include <vector>
 #include <set>
 #include <filesystem>
+#include <map>
+#include <iomanip>
 
-using std::string;
+using std::string, std::map, std::setw;
 using std::vector, std::cout, std::getline, std::cin;
 namespace  fs = std::filesystem;
 
 //%%%%%%%%%%% -- DEFINITIONS -- %%%%%%%%%%%
-// #define _DEBUG
+#define _DEBUG
 
 
 
@@ -22,22 +24,24 @@ namespace  fs = std::filesystem;
 
 
 //%%%%%%%%%%% -- PREDECLARATIONS -- %%%%%%%%%%%
-const  std::set<string> datas = {"INT", "DATE", "STRING", "BOOL"};
+typedef string SQLTable;
+const  std::set<string> datas = {"INT", "DATE", "STRING", "BOOL", "FLOAT"};
 const bool data_exist(string tp){return datas.count(tp) != 0;}
 
-void list_tables();
+void list_tables(const map<string, SQLTable> &sql_manager);
+void delete_table(string name, map<string, SQLTable> &sql_manager); 
+void read_input_command(string args,map<string, SQLTable> &sql_manager);
+void insert_row(vector<string> args,map<string, SQLTable> &sql_manager ); 
 void help_console();
-void delete_table(string name); 
-void insert_row(vector<string> args); 
-void read_input_command(string args);
-void create_table(vector<string> args);
-void search_pkey(string name, string key);
+void create_table(vector<string> args,map<string, SQLTable> &sql_manager);
+void search_pkey(vector<string> args, map<string, SQLTable> &sql_manager);
 void strUpper(string &str){for (auto & c: str) c = toupper(c);}
+
 
 
 int main() {
     string command, tmp;
-
+    map<string, SQLTable> sql_manager;
     while (true) {
         command.clear();  
         cout << "SimpleQL $> ";
@@ -49,8 +53,8 @@ int main() {
             if (!tmp.empty() && tmp.find('\\')!=std::string::npos) {
                 command += tmp.substr(0, tmp.find('\\') - 1) + ' ';  
             } else {
-                command += tmp;  // Append the last line
-                break;  // Exit the inner loop to process the command
+                command += tmp; 
+                break;  // Exit the inner loop 
             }
         }
         strUpper(command);
@@ -58,13 +62,13 @@ int main() {
         if (command == "EXIT") break;
         
         // Process the command
-        read_input_command(command);
+        read_input_command(command, sql_manager);
     }
 
     return 0;
 }
 
-void read_input_command(string args){
+void read_input_command(string args,map<string, SQLTable> &sql_manager){
     DBG_COUT(("COMMAND:" + args));
 
     if(args == "HELP"){
@@ -87,19 +91,19 @@ void read_input_command(string args){
     
 
     if(args.find("CREATE-TABLE")!= string::npos){
-        create_table(param);
+        create_table(param, sql_manager);
         return;
     }
     if(args.find("LIST-TABLE")!= string::npos){
-        list_tables();
+        list_tables(sql_manager);
         return;
     }
     if(args.find("DELETE-TABLE")!= string::npos){
-        delete_table(args);
+        delete_table(args, sql_manager);
         return;
     }
 
-
+    cout << "\n --  COMMAND UNDEFINED ! --\n";
 }
 
 
@@ -123,7 +127,7 @@ void help_console(){
 
 }
 
-void create_table(vector<string> args){
+void create_table(vector<string> args,map<string, SQLTable> &sql_manager){
     size_t sz = args.size();
     if(sz < 3){
         cout << "\n-- TABLE NOT CREATED, MISSING PARAMETERS -- \n";
@@ -132,7 +136,7 @@ void create_table(vector<string> args){
     vector<string> entities_name, entities_type;
     string arg, name, type;
     size_t pos =0, len;
-
+    string table_name = args[1];
 
     // correctness parameters
     for(auto i = 2; i <sz; i++){
@@ -155,20 +159,38 @@ void create_table(vector<string> args){
 
     //CRIACÃO/REESCRITA DE TABELA
 
+    sql_manager[table_name] = "hello";
+    
+}
+void insert_row(vector<string> args,map<string, SQLTable> &sql_manager){
+    //constraint: operation, table_name, <row>
+    size_t sz = args.size();
+    if(sz < 3){
+        cout << "\n-- TABLE NOT CREATED, MISSING PARAMETERS -- \n";
+        return;
+    }
+
+    //get the name of table
+    string name = args[1];
+    //get the row data
+    vector<string> row =vector<string> (args.begin()+2, args.end());
+    
+    //open table ?
+    // SimpleTableHandler T(name);
 
     
-}
-void insert_row(vector<string> args){
     
 } 
-void delete_table(string name){
+void delete_table(string name, map<string, SQLTable> &sql_manager){
     
 }
-void list_tables(){
-    std::string path = "/path/to/directory";
-    for (const auto & entry : fs::directory_iterator(path))
-        std::cout << entry.path() << std::endl;
+void list_tables(const map<string, SQLTable> &sql_manager){
+    int num =1;
+    for(auto it = sql_manager.begin(); it != sql_manager.end(); ++it){
+        cout << "["<<setw(3)<<num++ << " ] - ";
+        cout << it->first << "\n";
+    }
 }
-void search_pkey(string name, string key){
+void search_pkey(vector<string> args, map<string, SQLTable> &sql_manager){
     
 }
