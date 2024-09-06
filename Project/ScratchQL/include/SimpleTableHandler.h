@@ -340,10 +340,11 @@ bool SimpleTableHandler::valid_skey(key_format key, string name_entity){
 
 vector<DataInterface*> SimpleTableHandler::read_pkey(key_format key){
 
-    if(!valid_pkey(key))
+    if(!valid_pkey(key)){
         return vector<DataInterface*>(get_total_entities(), nullptr);
+    }
 
-
+    
     size_t RRN = map[0].find(key)->second;
 
     return read_row(RRN, true);
@@ -520,6 +521,7 @@ bool SimpleTableHandler::update(key_format pkey,string new_value){
 }
 
 void SimpleTableHandler::drop(){//BE CAREFUL, THAT DELETES EVERYTHING! >:(
+
     file_handler.destroy();
 }
 

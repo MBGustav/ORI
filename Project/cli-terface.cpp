@@ -16,7 +16,7 @@ using std::vector, std::cout, std::getline, std::cin;
 namespace  fs = std::filesystem;
 
 //%%%%%%%%%%% -- DEFINITIONS -- %%%%%%%%%%%
-#define _VERBOSE_OUTPUT
+//#define _VERBOSE_OUTPUT
 
 
 #ifndef DIR_TABLES
