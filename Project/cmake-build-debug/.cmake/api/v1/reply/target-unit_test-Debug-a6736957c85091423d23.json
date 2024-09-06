@@ -133,7 +133,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "ScratchQL/unit_tests/unit_test.cpp",
+			"path" : "ScratchQL/test.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

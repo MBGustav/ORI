@@ -59,6 +59,8 @@ public:
 
     ~SimpleTableHandler(){file_handler.close();};
 
+
+
     //validations
     bool valid_pkey(key_format pkey);
     bool valid_skey(key_format pkey, string name_entity);
@@ -104,7 +106,8 @@ public:
     bool insert(vector<DataInterface*> row);        // same typo             (safe mode)
     bool insert(vector<vector<string>> row);        // to add multiple rows  (safe mode)
     bool delete_pk(key_format primary_key);         // remove the row by id (or PK)
-    bool update(key_format pkey,string new_value);  // change values by pkey
+    bool update(key_format pkey,string new_value); // change values by pkey
+    void update(int idx, vector<DataInterface*> new_values); // change values by index
 
 
     // Transaction Control Language (TCL) i guess i cant...
@@ -115,6 +118,11 @@ public:
     // Data Query Language (DQL)
     // This will be done in a SQLManager
 
+    void delete_row(int idx);
+
+    void delete_row(string id);
+
+    void clear();
 };
 
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
@@ -259,8 +267,10 @@ void SimpleTableHandler::display(){
     std::cout << "Total Rows: "<< total << std::endl;  
 }
 
+
+
 void SimpleTableHandler::read_file() // TODO: fix when we read a file, we must find a header
-{   
+{
     bool find = file_handler.read_header(file_handler.get_header_name());
 
     if(!find) throw std::runtime_error("[ERROR] Fail to Read Header\n");
@@ -330,6 +340,12 @@ vector<DataInterface*> SimpleTableHandler::read_pkey(key_format key){
 
     return read_row(RRN, true);
 }
+
+void SimpleTableHandler::update(int idx, vector<DataInterface*> new_values){
+    file_handler.update(idx, new_values);
+}
+
+
 vector<vector<DataInterface*>> SimpleTableHandler::read_skey_greater(key_format key, std::string name_entity, bool add_equals)
 {
     if(!valid_skey(key, name_entity)){
@@ -435,6 +451,13 @@ void SimpleTableHandler::delete_table(string table_name) {
         std::cout << "Tabela " << table_name << " nao encontrada." << std::endl;
         std::cout << "Header" << table_header << " nao encontrada." << std::endl;
     }
+}
+
+
+
+void SimpleTableHandler::delete_row(string id){
+    int id_int = stoi(id);
+    file_handler.delete_row_by_id(id_int);
 }
 
 #endif /*SIMPLETABLEHANDLER_H*/
