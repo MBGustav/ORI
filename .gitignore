@@ -1,6 +1,9 @@
 **/.vscode/**
 **/build/**
 Project/main
-Project/FolderTables/*.tab
+Project/FolderTables/*.*bin
 **/archived/**
 **/__pycache__/**
+
+**/unit_test
+**/interface

@@ -23,6 +23,15 @@ using std::ios, std::to_string;
 
 #define MAX_DISPLAY_ROW (10)
 
+DataType str2type(string type) {
+    if("FLOAT")  return DataType::FLOAT;
+    if("STRING") return DataType::STRING;
+    if("INT")    return DataType::INT;
+    if("DATE")   return DataType::DATE;
+    
+    return TYPE_NULL;
+}
+
 
 typedef string key_format;
 
@@ -38,6 +47,13 @@ private:
 
 
 public:
+
+    SimpleTableHandler(SimpleTableHandler&&) noexcept = default;
+    SimpleTableHandler& operator=(SimpleTableHandler&&) noexcept = default;
+
+    SimpleTableHandler(const SimpleTableHandler&) = delete;
+    SimpleTableHandler& operator=(const SimpleTableHandler&) = delete;
+    
     void close(){file_handler.close();};
     void write_row(vector<DataInterface*> row); //unsafe mode (no verification)
     

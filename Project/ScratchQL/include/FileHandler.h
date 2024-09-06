@@ -19,7 +19,7 @@ using std::vector, std::ios, std::set;
 namespace fs = std::filesystem;
 
 #ifndef DIR_TABLE
-    #define DIR_TABLE "./ScratchQL/FolderTables/"
+    #define DIR_TABLE "./ScratchQL/FolderTables"
 #endif
 
 typedef enum files_list {ALL, HEADERS_ONLY, TABLES_ONLY} files_list; 
@@ -34,10 +34,15 @@ typedef struct EntityProperties{
 }EntityProperties;
 
 
-std::string get_name_filepath(const std::string& name_filepath, bool is_header) {
-    std::string suffix = is_header ? "_header.bin" : "_data.bin";
-    fs::path filepath = (name_filepath + suffix);
-    return filepath.string();
+std::string get_name_filepath(const std::string& str_filename, bool is_header) {
+    fs::path dir_path = DIR_TABLE;
+    fs::path suffix = is_header ? ".hbin" : ".bin";
+    fs::path filename = str_filename;
+    
+    // Combine directory path, filename, and suffix
+    fs::path full_path = dir_path / filename;
+    full_path.replace_extension(suffix);
+    return full_path.string();
 }
 
 DataInterface *dt_alloc(DataType type, string data="")
@@ -100,10 +105,10 @@ std::set<string> list_tables(files_list filter = ALL)
                 condition = true;
                 break;
             case files_list::HEADERS_ONLY:
-                condition = file_name.find("header.bin") != string::npos; // Verifica se contém "header.bin"
+                condition = file_name.find(".hbin") != string::npos; // Verifica se contém "header.bin"
                 break;
             case files_list::TABLES_ONLY:
-                condition = file_name.find("data.bin") != string::npos; // Verifica se contém "data.bin"
+                condition = file_name.find(".bin") != string::npos; // Verifica se contém "data.bin"
                 break;
             default:
                 continue; // Continue se o filtro for inválido
@@ -149,6 +154,8 @@ public:
     FileHandler(const string& filename_base, 
                 vector<EntityProperties> properties, 
                 bool temporary = false);
+    
+    
 
 // Construtor para abertura de tabela(raise error if not existent)
     FileHandler(const string& filename_base, 
@@ -240,31 +247,33 @@ FileHandler::FileHandler(const string& filename_base,
                          ios::openmode header_mode,
                          ios::openmode data_mode,
                          bool temporary)
-    :header_filepath(get_name_filepath(filename_base,false)), 
-     data_filepath(get_name_filepath(filename_base, true)), is_tmp(temporary),
+    :header_filepath(get_name_filepath(filename_base,true)), 
+     data_filepath(get_name_filepath(filename_base, false)), is_tmp(temporary),
      total_elements(0), offset_row(0), offset_header(0), total_entities(0)
 {
     open();
     write_header();
+    close();
 }
 
 FileHandler::FileHandler(const string& filename_base, 
                         vector<EntityProperties> properties, 
                         bool temporary)
-            :header_filepath(DIR_TABLE + filename_base + "_header.bin"), 
-             data_filepath(DIR_TABLE + filename_base + "_data.bin"), is_tmp(temporary),
+            :header_filepath(get_name_filepath(filename_base, true )), 
+             data_filepath(get_name_filepath(filename_base, false )), is_tmp(temporary),
              entities(properties),
              total_elements(0), offset_row(0), offset_header(0), total_entities(0)
 {
     create();
     write_header();
+    close();
 }
 
 
 FileHandler::FileHandler(const string& filename_base, 
                          bool temporary)
-            :header_filepath(DIR_TABLE + filename_base + "_header.bin"), 
-             data_filepath(DIR_TABLE + filename_base + "_data.bin"), is_tmp(temporary),
+            :header_filepath(get_name_filepath(filename_base, true)), 
+             data_filepath(get_name_filepath(filename_base, false)), is_tmp(temporary),
              total_elements(0), offset_row(0), offset_header(0), total_entities(0)             
 {
     open();
@@ -273,6 +282,7 @@ FileHandler::FileHandler(const string& filename_base,
     if(list_tables(HEADERS_ONLY).count(header_filepath) == 0)
         throw std::runtime_error("[ERROR] Header not found !");
     
+    close();
 }
 
 
@@ -362,6 +372,7 @@ void FileHandler::destroy(){
 void FileHandler::create(){
     ptr_file_open(header_file, header_filepath, ios::binary | ios::out);
     ptr_file_open(data_file,   data_filepath,   ios::binary | ios::out);
+    close();
 }
 
 void FileHandler::open(bool create_header){
