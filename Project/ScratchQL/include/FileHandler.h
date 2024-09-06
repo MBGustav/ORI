@@ -313,14 +313,13 @@ size_t FileHandler::bin_fsize(){
 
 vector<DataInterface*> FileHandler::read_row(size_t idx, bool is_RRN)
 {
-    open_data(ios::in);
+    open_data(ios::in | ios::out);
     
     size_t offset = idx * (is_RRN ? 1 : row_offset());
     seek_data(ios::beg, offset);
     size_t total_entities = get_total_entities();
 
     vector<DataInterface*> row(total_entities, nullptr);
-
     for(int it = 0;it < total_entities; it++)
     {
         row[it] = dt_alloc(entities[it].type);

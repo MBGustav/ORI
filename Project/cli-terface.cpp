@@ -63,7 +63,7 @@ int main() {
     string command, tmp;
     std::map<std::string, std::shared_ptr<SQLTable>> sql_manager;
     cout << "-- LOADING TABLES --\n"; 
-    update_list_tables(sql_manager);
+    // update_list_tables(sql_manager);
     while (true) {
         command.clear();  
         cout << "SimpleQL $> ";
@@ -311,15 +311,20 @@ void search_pkey(vector<string> args, std::map<std::string, std::shared_ptr<SQLT
 
     string name = args[1];
     string key = args[2];
+    cout << key;
     if(sql_manager.count(name) == 0){
         cout << "\n-- TABLE ( "<< name <<" )NOT FOUND -- \n";
         return;
     }
-    vector<EntityProperties> ent = sql_manager[name]->get_entities(); 
-    vector<DataInterface*> row = sql_manager[name]->read_pkey(key);
-    
-    SQLTable tmp("tmp-query",ent,true);
-    tmp.insert(row);
+
+
+    SQLTable T(name, false);
+    vector<DataInterface*> row = T.read_pkey(key);
+
+    vector<EntityProperties> prop = T.get_entities(); 
+
+    SQLTable tmp(name, prop, true);
+    tmp.write_row(row);
     tmp.display();
 }
 
@@ -336,10 +341,15 @@ void search_skey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std
         return;
     }
     vector<EntityProperties> ent_row =  sql_manager[name]->get_entities();
-    vector<vector<DataInterface*>> table = sql_manager[name]->read_skey(key,ent_key);
-    SQLTable tmp(table, ent_row, "temp",  true);
 
-    tmp.display();
+    SQLTable T(name, false);
+    
+    if(sql_manager[name]->valid_pkey(key)) std::cout <<"[PASSED] valid creation\n";
+    else std::cout << "[ERROR] did not find\n";
+    // vector<vector<DataInterface*>> table = sql_manager[name]->read_skey(key,ent_key);
+    // SQLTable tmp(table, ent_row, "temp",  true);
+
+    // tmp.display();
 }
 
 
