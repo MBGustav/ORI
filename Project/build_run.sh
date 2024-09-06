@@ -1,5 +1,4 @@
 
 
-mkdir -p ./build
-cd ./build && make
-cd ../ && ./interface
+mkdir -p ./build ; cd ./build;
+cmake .. && make && cd ../ && ./interface

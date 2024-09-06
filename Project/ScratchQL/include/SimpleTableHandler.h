@@ -24,14 +24,21 @@ using std::ios, std::to_string;
 #define MAX_DISPLAY_ROW (10)
 
 DataType str2type(string type) {
-    if("FLOAT")  return DataType::FLOAT;
-    if("STRING") return DataType::STRING;
-    if("INT")    return DataType::INT;
-    if("DATE")   return DataType::DATE;
+    if(type == "STRING") return DataType::STRING;
+    if(type == "INT")    return DataType::INT;
+    if(type == "DATE")   return DataType::DATE;
+    if(type == "FLOAT")  return DataType::FLOAT;
     
     return TYPE_NULL;
 }
 
+string type2str(DataType type) {
+    if(type == DataType::FLOAT)  return string("FLOAT");
+    if(type == DataType::STRING) return string("STRING");
+    if(type == DataType::INT)    return string("INT");
+    if(type == DataType::DATE)   return string("DATE");
+    return string("TYPE_NULL");
+}
 
 typedef string key_format;
 
@@ -55,18 +62,14 @@ public:
     SimpleTableHandler& operator=(const SimpleTableHandler&) = delete;
     
     void close(){file_handler.close();};
-    void write_row(vector<DataInterface*> row); //unsafe mode (no verification)
+    void write_row(vector<DataInterface*> row);
     
-    //read a file
+    //%%%%%%%%%%% -- CONSTRUCTORS -- %%%%%%%%%%%
     SimpleTableHandler(std::string filename,        
                        bool temporary = false);
-
-    //force a file creation
     SimpleTableHandler(std::string filename,                
                        vector<EntityProperties> properties, 
                        bool temporary = true); 
-
-
     SimpleTableHandler(vector<vector<DataInterface*>> table,
                        vector<EntityProperties> &prop,
                        std::string fname,
@@ -87,6 +90,9 @@ public:
     size_t get_total_elements() const {return file_handler.get_total_elements();}
     size_t get_total_entities() const {return file_handler.get_total_entities();}
     vector<EntityProperties> get_entities() const {return vector<EntityProperties>(file_handler.get_entities());}
+    EntityProperties get_entity(string name_entity) const;
+    vector<string> get_entity_names() const;
+    int get_entity_idx(string name_entity) const;
 
     //setter
     void set_entities(vector<EntityProperties> vec);
@@ -103,12 +109,8 @@ public:
     size_t bin_fsize();
     size_t row_offset();    
     void display();
-    int get_entity_idx(string name_entity) const;
-    EntityProperties get_entity(string name_entity) const;
-    vector<string> get_entity_names() const;
 
     static void delete_table(string table_name);
-
 
     // Data Definition Language (DDL)
     void alter();   // under construction
@@ -119,7 +121,7 @@ public:
     bool insert(vector<string> row);                // adding a row of data  (safe mode)
     bool insert(vector<DataInterface*> row);        // same typo             (safe mode)
     bool insert(vector<vector<string>> row);        // to add multiple rows  (safe mode)
-    bool delete_pk(key_format primary_key);         // remove the row by id (or PK)
+    bool delete_pk(key_format primary_key);         // remove the row by id  (or PK)
     bool update(key_format pkey,string new_value);  // change values by pkey
 
 
@@ -452,5 +454,74 @@ void SimpleTableHandler::delete_table(string table_name) {
         std::cout << "Header" << table_header << " nao encontrada." << std::endl;
     }
 }
+
+bool SimpleTableHandler::insert(vector<string> row){
+    //constraint
+    int pkey_idx = 0;
+    vector<EntityProperties> ent = get_entities();
+    size_t sz = ent.size();
+    size_t sz_row = row.size();
+
+    if(sz_row !=  sz) return false;
+
+    // check primary key - if is valid, already contains
+    if(valid_pkey(row[pkey_idx])) return false;
+
+    //data conversion - check if possible ?
+    vector<DataInterface*>insert_row(sz);
+    for(int i = 0; i < sz; i++){
+        insert_row[i] = dt_alloc(ent[i].type, row[i]);
+    }
+    
+
+
+    write_row(insert_row);
+
+    return true;
+}
+bool SimpleTableHandler::insert(vector<DataInterface*> row){
+
+    //constraint
+    int pkey_idx = 0;
+    vector<EntityProperties> ent = get_entities();
+    size_t sz = ent.size();
+    size_t sz_row = row.size();
+    if(sz_row !=  sz) return false;
+    
+    //check memory consistency
+    for(auto &c : row) if(c == nullptr) return false;
+        
+    // check primary key - if is valid, already contains
+    if(valid_pkey(row[pkey_idx]->toString())) return false;
+    
+    write_row(row);
+    return true; 
+}
+bool SimpleTableHandler::insert(vector<vector<string>> table){
+    
+    const size_t ent_size = get_entities().size();
+    const int pkey_idx= 0;
+
+    size_t itr_rows  = table.size();
+    for(size_t r = 0; r<itr_rows; r++){
+        if(table[r].size() != ent_size) return false;
+        if(valid_pkey(table[r][pkey_idx])) return false;
+    }
+
+    for(auto &line: table)
+        if(!this->insert(line)) return false;
+    return true;
+}
+bool SimpleTableHandler::delete_pk(key_format primary_key){
+    return false;
+}
+bool SimpleTableHandler::update(key_format pkey,string new_value){
+    return false;
+}
+
+void SimpleTableHandler::drop(){//BE CAREFUL, THAT DELETES EVERYTHING! >:(
+    file_handler.destroy();
+}
+
 
 #endif /*SIMPLETABLEHANDLER_H*/

@@ -50,8 +50,9 @@ void delete_table(vector<string> args, /*map<string, SQLTable> &sql_manager*/ st
 void insert_row(vector<string> args,/*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager ); 
 void create_table(vector<string> args,/*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
 void search_pkey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
+void search_skey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
 void update_list_tables(/*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
-
+void list_properties(string args, const std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
 void display_tables(vector<string> args, std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
 
 void help_console();
@@ -130,8 +131,17 @@ void read_input_command(string args,/*map<string, SQLTable> &sql_manager*/ std::
         return;
     }
 
+        if(args.find("INSERT-ROW")!= string::npos){
+        insert_row(param, sql_manager);
+        return;
+    }
+
     if(args.find("QUERY-PKEY")!= string::npos){
         search_pkey(param, sql_manager);
+        return;
+    }
+    if(args.find("QUERY-SKEY")!= string::npos){
+        search_skey(param, sql_manager);
         return;
     }
 
@@ -149,6 +159,7 @@ void read_input_command(string args,/*map<string, SQLTable> &sql_manager*/ std::
 
 void update_list_tables(/*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager)
 {
+    sql_manager.clear();
     fs::path path = DIR_TABLES; // Caminho da pasta
     string file_ext = ".hbin"; 
         // Verificar se o diretório existe
@@ -226,7 +237,8 @@ void insert_row(vector<string> args,/*map<string, SQLTable> &sql_manager*/ std::
         return;
     }
 
-    // sql_manager[name]->insert(row);
+    if(!sql_manager[name]->insert(row))
+        cout << "\n--[ERROR] ROW NOT INSERTED -- \n";
 
     
 } 
@@ -244,15 +256,12 @@ void delete_table(vector<string> args, /*map<string, SQLTable> &sql_manager*/ st
         return;
     }   
 
-    // SQLTable Table = sql_manager[name];
-    
-    // deletion Table
-    // Table.delete();
-
+    sql_manager[name]->drop();
+    sql_manager.erase(name);
 }
 void list_tables(const /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager) {
     int num = 1;
-    const int width = 30; // Definindo largura fixa para a tabela
+    const int width = 30; // Definindo largura fixa 
 
                     
     cout << "╔══════════════════════════════════════╗\n";
@@ -266,38 +275,101 @@ void list_tables(const /*map<string, SQLTable> &sql_manager*/ std::map<std::stri
              << setw(width) << left << entry.first << " ║\n";
     }
     cout << "╚═════╩════════════════════════════════╝\n";
+    
+    // list_properties(sql_manager);
 }
-void search_pkey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager){
+
+void list_properties(string arg, std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager) {
+    const int width = 15; // Define a fixed width for each column
+
+    
+    // for (const auto& entry : sql_manager) {
+        // Get the entities (columns) of the table
+        vector<EntityProperties> entities = sql_manager[arg]->get_entities();
+
+        // Header for each table
+        cout << "╔════════════════════════════════════════════════╗\n";
+        cout << "║  Properties from : " << std::setw(25) << arg << " ║\n";
+        cout << "╠════════════════╦═══════════════════════════════╣\n";
+        cout << "║ Column         ║ Type                          ║\n";
+        cout << "╠════════════════╬═══════════════════════════════╣\n";
+
+        // Print each column name and its type
+        for (const auto& entity : entities) {
+            cout << "║ " << std::setw(14) << left << entity.name
+                 << "║ " << std::setw(30) << left << type2str(entity.type) << " ║\n";
+        }
+
+        // End of the table for each entity
+        cout << "╚════════════════╩═══════════════════════════════╝\n\n";
+    // }
+}
+
+void search_pkey(vector<string> args, std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager){
     // constraints <cmd> <table_name> <key>
     if(!valid_args(args, 3)) return ;
 
     string name = args[1];
+    string key = args[2];
     if(sql_manager.count(name) == 0){
         cout << "\n-- TABLE ( "<< name <<" )NOT FOUND -- \n";
         return;
     }
+    vector<EntityProperties> ent = sql_manager[name]->get_entities(); 
+    vector<DataInterface*> row = sql_manager[name]->read_pkey(key);
+    
+    SQLTable tmp("tmp-query",ent,true);
+    tmp.insert(row);
+    tmp.display();
 }
+
+void search_skey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager){
+    // constraints <cmd> <table_name> <entity> <key>
+    if(!valid_args(args, 4)) return ;
+
+    string name    = args[1];
+    string ent_key = args[2];
+    string key     = args[3];
+
+    if(sql_manager.count(name) == 0){
+        cout << "\n-- TABLE ( "<< name <<" )NOT FOUND -- \n";
+        return;
+    }
+    vector<EntityProperties> ent_row =  sql_manager[name]->get_entities();
+    vector<vector<DataInterface*>> table = sql_manager[name]->read_skey(key,ent_key);
+    SQLTable tmp(table, ent_row, "temp",  true);
+
+    tmp.display();
+}
+
+
 
 void help_console() {
     // Cabeçalho elegante
     cout << "╔══════════════════════════════════════════════════════════╗\n";
-    cout << "║                Main Functions for SQLTable               ║\n";
+    cout << "║                Main Functions for SimpleQL               ║\n";
     cout << "╚══════════════════════════════════════════════════════════╝\n";
     cout << "╔══════════════════════════════════════════════════════════╗\n";
     cout << "║ Commands                                                 ║\n";
     cout << "╠══════════════════════════════════════════════════════════╣\n";
     cout << "║ - CREATE-TABLE <name> [<name_entity>=<data_type>]        ║\n";
-    cout << "║ - DELETE-TABLE                                           ║\n";
+    cout << "║ - DELETE-TABLE <table_name>                              ║\n";
     cout << "║ - INSERT-ROW   <table_name> (<row>)                      ║\n";
     cout << "║ - LIST-TABLES                                            ║\n";
+    cout << "║ - QUERY-PKEY   <table_name> <PKEY>                       ║\n";
+    cout << "║ - QUERY-SKEY   <table_name> <entity_name> <PKEY>         ║\n";
+    cout << "║ - UPDATE-DB                                              ║\n";
     cout << "╚══════════════════════════════════════════════════════════╝\n";
     cout << "╔══════════════════════════════════════════════════════════╗\n";
     cout << "║ Description                                              ║\n";
     cout << "╠══════════════════════════════════════════════════════════╣\n";
     cout << "║ - CREATE-TABLE : Truncate/write a new table.             ║\n";
     cout << "║ - DELETE-TABLE : Delete the table.                       ║\n";
-    cout << "║ - INSERT-ROW   : Insert a row, use values between ().    ║\n";
+    cout << "║ - INSERT-ROW   : Insert a row, dont use space on string. ║\n";
     cout << "║ - LIST-TABLES  : List the tables created.                ║\n";
+    cout << "║ - QUERY-PKEY   : search for data by pkey and shows       ║\n";
+    cout << "║ - QUERY-SKEY   : search for data by skey and shows       ║\n";
+    cout << "║ - UPDATE-DB    : Force update to read tables             ║\n";
     cout << "╠══════════════════════════════════════════════════════════╣\n";
     cout << "║ Data Types Available :                                   ║\n";
     // cout << "╠══════════════════════════════════════════════════════════╣\n";
@@ -321,8 +393,10 @@ void display_tables(vector<string> args, std::map<std::string, std::shared_ptr<S
         if(sql_manager.count(name) != 0){
             cout << "Table Name -- " << name << "\n";
             sql_manager[name]->display();
+            list_properties(name, sql_manager);
         } else {
             cout << "Table  -- " << name << " not found\n";
+            return;
         }
     }
 

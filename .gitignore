@@ -7,3 +7,5 @@ Project/FolderTables/*.*bin
 
 **/unit_test
 **/interface
+**/*.bin
+**/*.hbin
