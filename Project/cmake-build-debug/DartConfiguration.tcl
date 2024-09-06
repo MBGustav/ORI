@@ -14,7 +14,7 @@ CostDataFile:
 Site: BOOK-1JQE2GNKL6
 
 # Build name is osname-revision-compiler, i.e. Linux-2.4.2-2smp-c++
-BuildName: Win32-ninja
+BuildName: Win32-mingw32-make
 
 # Subprojects
 LabelsForSubprojects: 
@@ -28,7 +28,7 @@ NightlyStartTime: 00:00:00 EDT
 
 # Commands for the build/test/submit cycle
 ConfigureCommand: "C:/Program Files/JetBrains/CLion 2024.1/bin/cmake/win/x64/bin/cmake.exe" "C:/Users/enzod/Desktop/ORI/Project"
-MakeCommand: "C:\Program Files\JetBrains\CLion 2024.1\bin\cmake\win\x64\bin\cmake.exe" --build . --config "${CTEST_CONFIGURATION_TYPE}"
+MakeCommand: C:/Program\ Files/JetBrains/CLion\ 2024.1/bin/cmake/win/x64/bin/cmake.exe --build . --config "${CTEST_CONFIGURATION_TYPE}"
 DefaultCTestConfigurationType: Release
 
 # version control
