@@ -133,6 +133,7 @@ public:
     // Data Query Language (DQL)
     // This will be done in a SQLManager
 
+    void delete_row(string id);
 };
 
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
@@ -524,6 +525,12 @@ void SimpleTableHandler::drop(){//BE CAREFUL, THAT DELETES EVERYTHING! >:(
 
     file_handler.destroy();
 }
+
+void SimpleTableHandler::delete_row(string id){
+    int id_int = stoi(id);
+    file_handler.delete_row_by_id(id_int);
+}
+
 
 
 #endif /*SIMPLETABLEHANDLER_H*/

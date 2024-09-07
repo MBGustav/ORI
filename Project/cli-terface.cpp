@@ -59,11 +59,13 @@ void help_console();
 void list_tables(const /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager);
 
 
+void delte_row(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable>> &map);
+
 int main() {
     string command, tmp;
     std::map<std::string, std::shared_ptr<SQLTable>> sql_manager;
-    cout << "-- LOADING TABLES --\n"; 
-    // update_list_tables(sql_manager);
+    cout << "-- LOADING TABLES --\n";
+    update_list_tables(sql_manager);
     while (true) {
         command.clear();  
         cout << "SimpleQL $> ";
@@ -148,13 +150,36 @@ void read_input_command(string args,/*map<string, SQLTable> &sql_manager*/ std::
     if(args.find("UPDATE-DB")!= string::npos){
         update_list_tables(sql_manager);
         return;
-    } 
+    }
+    if(args.find("DELETE * FROM")!= string::npos){
+        delte_row(param, sql_manager);
+        return;
+    }
 
 
 
 
     if(args.size()  != 0)
         cout << "\n --  COMMAND UNDEFINED ! --\n";
+}
+
+void delte_row(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable>>& map) {
+    //DELETE * FROM <table_name> WHERE id = ?
+    // constraints <cmd> <table_name> <key>
+    if(!valid_args(vector1, 4)) return ;
+
+    string name = vector1[3];
+    std::string key = vector1[7];
+    cout << key;
+    if(map.count(name) == 0){
+        cout << "\n-- TABLE ( "<< name <<" )NOT FOUND -- \n";
+        return;
+    }
+
+
+    map[name]->delete_row(key);
+    map[name]->display();
+    cout<<std::endl;
 }
 
 void update_list_tables(/*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager)
@@ -263,19 +288,21 @@ void list_tables(const /*map<string, SQLTable> &sql_manager*/ std::map<std::stri
     int num = 1;
     const int width = 30; // Definindo largura fixa 
 
-                    
+  /*
     cout << "╔══════════════════════════════════════╗\n";
     cout << "║            Table Listing             ║\n";
     cout << "╚══════════════════════════════════════╝\n";
     cout << "╔═════╦════════════════════════════════╗\n";
     cout << "║ No. ║ Table Name                     ║\n";
     cout << "╠═════╬════════════════════════════════╣\n";
+    */
     for (const auto &entry : sql_manager) {
         cout << "║ " << setw(3) << left << num++ << " ║ " 
              << setw(width) << left << entry.first << " ║\n";
     }
     cout << "╚═════╩════════════════════════════════╝\n";
-    
+
+
     // list_properties(sql_manager);
 }
 
@@ -369,6 +396,7 @@ void help_console() {
     cout << "║ - QUERY-PKEY   <table_name> <PKEY>                       ║\n";
     cout << "║ - QUERY-SKEY   <table_name> <entity_name> <PKEY>         ║\n";
     cout << "║ - UPDATE-DB                                              ║\n";
+    cout << "║ - DELETE FROM * <table_name> WHERE id = ?                ║\n";
     cout << "╚══════════════════════════════════════════════════════════╝\n";
     cout << "╔══════════════════════════════════════════════════════════╗\n";
     cout << "║ Description                                              ║\n";
@@ -380,6 +408,7 @@ void help_console() {
     cout << "║ - QUERY-PKEY   : search for data by pkey and shows       ║\n";
     cout << "║ - QUERY-SKEY   : search for data by skey and shows       ║\n";
     cout << "║ - UPDATE-DB    : Force update to read tables             ║\n";
+    cout << "║ - DELETE FROM : Delete a row from table                 ║\n";
     cout << "╠══════════════════════════════════════════════════════════╣\n";
     cout << "║ Data Types Available :                                   ║\n";
     // cout << "╠══════════════════════════════════════════════════════════╣\n";

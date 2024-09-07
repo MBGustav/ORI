@@ -218,6 +218,8 @@ public:
     void read_data(DataInterface* data_ptr);
 
     bool read_header(string header_path);
+
+    void delete_row_by_id(int id);
 };
 
 
@@ -521,6 +523,75 @@ bool FileHandler::read_header(string header_path) {
     }
     return val;
 }
+
+
+void FileHandler::delete_row_by_id(int id) {
+    open_data(ios::in | ios::out); // Abrir o arquivo para leitura e escrita
+
+    size_t row_size = row_offset();
+    size_t total_rows = get_total_elements();
+
+    vector<DataInterface*> row;
+    for (size_t i = 0; i < total_entities; i++) {
+        row.push_back(dt_alloc(entities[i].type));
+    }
+
+    size_t delete_index = -1;
+    bool found = false;
+
+    // Encontrar o índice da linha a ser deletada
+    for (size_t current_row = 0; current_row < total_rows; current_row++) {
+        seek_data(ios::beg, current_row * row_size);
+        for (size_t i = 0; i < total_entities; i++) {
+            row[i]->fread(data_file);
+        }
+
+        // Verificar se o ID da linha corresponde ao ID que queremos excluir
+        if (row[0]->toString() == std::to_string(id)) {
+            found = true;
+            delete_index = current_row; // Guardar o índice da linha a ser deletada
+            std::cout << "Registro encontrado e será deletado: ";
+            for (size_t i = 0; i < total_entities; i++) {
+                std::cout << "Valor da Coluna " << (i+1) << " == " << row[i]->toString() << " ";
+            }
+            std::cout << std::endl;
+            break; // Parar a busca após encontrar o registro
+        }
+    }
+
+    if (!found) {
+        std::cout << "ID não encontrado!" << std::endl;
+        close();
+        return;
+    }
+
+    // Sobrescrever as linhas seguintes para remover o registro deletado
+    for (size_t current_row = delete_index; current_row < total_rows - 1; current_row++) {
+        // Ler a próxima linha
+        seek_data(ios::beg, (current_row + 1) * row_size);
+        for (size_t i = 0; i < total_entities; i++) {
+            row[i]->fread(data_file);
+        }
+
+        // Reescrever esta linha na posição anterior
+        seek_data(ios::beg, current_row * row_size);
+        for (size_t i = 0; i < total_entities; i++) {
+            row[i]->fwrite(data_file);
+        }
+    }
+
+    // Truncar o arquivo para remover a última linha duplicada
+    data_file.seekp((total_rows - 1) * row_size);
+    data_file.put(EOF);
+
+    // Atualizar o total de elementos e gravar o cabeçalho
+    total_elements--;
+    write_header();
+
+    close();
+    std::cout << "Registro deletado com sucesso!" << std::endl;
+}
+
 
 
 #endif /*FILEHANDLER_H_*/
