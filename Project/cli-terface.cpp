@@ -61,6 +61,8 @@ void list_tables(const /*map<string, SQLTable> &sql_manager*/ std::map<std::stri
 
 void delte_row(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable>> &map);
 
+void update_table(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable>> &map);
+
 int main() {
     string command, tmp;
     std::map<std::string, std::shared_ptr<SQLTable>> sql_manager;
@@ -156,11 +158,90 @@ void read_input_command(string args,/*map<string, SQLTable> &sql_manager*/ std::
         return;
     }
 
+    if(args.find("UPDATE * FROM")!= string::npos){
+        update_table(param, sql_manager);
+        return;
+    }
+
 
 
 
     if(args.size()  != 0)
         cout << "\n --  COMMAND UNDEFINED ! --\n";
+}
+
+void update_table(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable>> &map) {
+    //UPDATE * FROM <table_name> SET <entity> = <value> WHERE id = ?
+    // constraints <cmd> <table_name> <entity> <value> <key>
+    if(!valid_args(vector1, 6)) return ;
+
+    string name = vector1[3];
+    string ent_key = vector1[5];
+    string key = vector1[11];
+    string value = vector1[7];
+    cout << key;
+    if(map.count(name) == 0){
+        cout << "\n-- TABLE ( "<< name <<" )NOT FOUND -- \n";
+        return;
+    }
+
+    vector<size_t> size_ent(map[name]->get_total_entities(), 0);
+    int idx = 0;
+    size_t total = map[name]->total_items();
+    size_t total2print = std::min((size_t)10, total);
+    vector<vector<DataInterface *>> vis_table;
+    vector<DataInterface *> row;
+    auto columns = map[name]->get_entities();
+    vector<DataInterface *> row2(map[name]->get_total_entities(), nullptr); // Inicializar row2 com o tamanho correto e valores nulos
+
+    while (idx < total2print) {
+        row = map[name]->read_row(idx++);
+
+        if (row.size() != map[name]->get_total_entities()) break;
+        vis_table.push_back(row);
+
+        // Atualiza o tamanho máximo dos dados por coluna
+        for (int i = 0; i < map[name]->get_total_entities(); i++) {
+            size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size());
+        }
+
+        // Procurar pela coluna com o nome especificado
+        for (int i = 0; i < map[name]->get_total_entities(); i++) {
+            if (key == row[i]->toString()) {
+                // Registro encontrado
+                int numero_coluna = 1;
+                cout << "Registro encontrado: " << std::endl;
+                for (auto &data : row) {
+                    cout << "Valor da Coluna " << numero_coluna << " == " << data->toString() << " ";
+                    cout << std::endl;
+
+                    // Atualizar ou manter o valor da coluna em row2
+                    if(columns[numero_coluna-1].name == ent_key){
+                        // Atualiza o valor da entidade especificada
+                        row2[numero_coluna-1] = dt_alloc(columns[numero_coluna-1].type, value);
+                    } else {
+                        // Mantém o valor original
+                        row2[numero_coluna-1] = data;
+                    }
+
+                    numero_coluna++;
+                }
+
+                cout << std::endl;
+                cout << "Registro atualizado: " << std::endl;
+                for(auto &data : row2){
+                    cout << data->toString() << " ";
+                }
+                cout << std::endl;
+
+                // Atualizar a linha no mapa
+                map[name]->update(idx-1, row2);
+
+                break;  // Saia do loop quando encontrar a correspondência
+            }
+        }
+    }
+
 }
 
 void delte_row(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable>>& map) {
@@ -456,6 +537,7 @@ void help_console() {
     cout << "║ - QUERY-SKEY   <table_name> <entity_name> <PKEY>         ║\n";
     cout << "║ - UPDATE-DB                                              ║\n";
     cout << "║ - DELETE FROM * <table_name> WHERE id = ?                ║\n";
+    cout << "║ - UPDATE * FROM <table_name> SET <entity> = <value> WHERE id = ? ║\n";
     cout << "╚══════════════════════════════════════════════════════════╝\n";
     cout << "╔══════════════════════════════════════════════════════════╗\n";
     cout << "║ Description                                              ║\n";
@@ -468,6 +550,7 @@ void help_console() {
     cout << "║ - QUERY-SKEY   : search for data by skey and shows       ║\n";
     cout << "║ - UPDATE-DB    : Force update to read tables             ║\n";
     cout << "║ - DELETE FROM : Delete a row from table                 ║\n";
+    cout << "║ - UPDATE * FROM : Update a row from table                ║\n";
     cout << "╠══════════════════════════════════════════════════════════╣\n";
     cout << "║ Data Types Available :                                   ║\n";
     // cout << "╠══════════════════════════════════════════════════════════╣\n";

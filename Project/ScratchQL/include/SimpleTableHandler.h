@@ -134,6 +134,10 @@ public:
     // This will be done in a SQLManager
 
     void delete_row(string id,string name);
+
+    void update(string entity_name, string new_value, string id);
+
+    void update(int idx, vector<DataInterface *> new_values);
 };
 
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
@@ -531,6 +535,9 @@ void SimpleTableHandler::delete_row(string id,string table_name){
     file_handler.delete_row_by_id(id_int, table_name);
 }
 
+void SimpleTableHandler::update(int idx, vector<DataInterface*> new_values){
+    file_handler.update(idx, new_values);
+}
 
 
 #endif /*SIMPLETABLEHANDLER_H*/

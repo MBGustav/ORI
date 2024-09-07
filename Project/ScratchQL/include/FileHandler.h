@@ -222,6 +222,10 @@ public:
     void delete_row_by_id(int id);
 
     void delete_row_by_id(int id, string name_table);
+
+    void update(string basicString, string basicString1, std::basic_string<char> i);
+
+    void update(int idx, vector<DataInterface *> new_values);
 };
 
 
@@ -591,6 +595,14 @@ void FileHandler::delete_row_by_id(int id, string name_table) {
         // Remover o arquivo temporário, já que não é necessário
         std::remove(temp_file_name.c_str());
     }
+}
+
+void FileHandler::update(int idx, vector<DataInterface*> new_values){
+    if(!valid_insert(new_values)) return;
+    open_data(ios::in | ios::out);
+    seek_data(ios::beg, idx * row_offset());
+    for(auto itr : new_values) itr->fwrite(data_file);
+    close();
 }
 
 
