@@ -288,14 +288,14 @@ void list_tables(const /*map<string, SQLTable> &sql_manager*/ std::map<std::stri
     int num = 1;
     const int width = 30; // Definindo largura fixa 
 
-  /*
+
     cout << "╔══════════════════════════════════════╗\n";
     cout << "║            Table Listing             ║\n";
     cout << "╚══════════════════════════════════════╝\n";
     cout << "╔═════╦════════════════════════════════╗\n";
     cout << "║ No. ║ Table Name                     ║\n";
     cout << "╠═════╬════════════════════════════════╣\n";
-    */
+
     for (const auto &entry : sql_manager) {
         cout << "║ " << setw(3) << left << num++ << " ║ " 
              << setw(width) << left << entry.first << " ║\n";
@@ -345,14 +345,41 @@ void search_pkey(vector<string> args, std::map<std::string, std::shared_ptr<SQLT
     }
 
 
-    SQLTable T(name, false);
-    vector<DataInterface*> row = T.read_pkey(key);
 
-    vector<EntityProperties> prop = T.get_entities(); 
+    vector<size_t> size_ent(sql_manager[name]->get_total_entities(), 0);
+    int idx =0;
+    //Collect size to print
+    size_t total = sql_manager[name]->total_items();
+    size_t total2print = std::min((size_t)10, total);
+    vector<vector<DataInterface *>> vis_table;
+    vector<DataInterface *> row;
+    while(idx < total2print){
+        row = sql_manager[name]->read_row(idx++);
 
-    SQLTable tmp(name, prop, true);
-    tmp.write_row(row);
-    tmp.display();
+        if(row.size()!= sql_manager[name]->get_total_entities()) break;
+        vis_table.push_back(row);
+
+
+        for(int i=0; i < sql_manager[name]->get_total_entities();i++) {
+            size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size());
+        }
+        for(auto &data : row){
+            if(key == data->toString()){
+                int numero_coluna = 1;
+                cout << "Registro encontrado: " << std::endl;
+                for (auto &data : row) {
+                    cout << "Valor da Coluna " << numero_coluna << " == " << data->toString() << " ";
+                    numero_coluna++;
+                }
+                cout << std::endl;
+                break;
+            }
+        }
+    }
+    if (row.empty()) {
+        cout << "Nenhum registro encontrado" << std::endl;
+    }
+
 }
 
 void search_skey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std::map<std::string, std::shared_ptr<SQLTable>>& sql_manager){
@@ -367,16 +394,48 @@ void search_skey(vector<string> args, /*map<string, SQLTable> &sql_manager*/ std
         cout << "\n-- TABLE ( "<< name <<" )NOT FOUND -- \n";
         return;
     }
-    vector<EntityProperties> ent_row =  sql_manager[name]->get_entities();
 
-    SQLTable T(name, false);
-    
-    if(sql_manager[name]->valid_pkey(key)) std::cout <<"[PASSED] valid creation\n";
-    else std::cout << "[ERROR] did not find\n";
-    // vector<vector<DataInterface*>> table = sql_manager[name]->read_skey(key,ent_key);
-    // SQLTable tmp(table, ent_row, "temp",  true);
+    vector<size_t> size_ent(sql_manager[name]->get_total_entities(), 0);
+    int idx = 0;
 
-    // tmp.display();
+// Coletar o tamanho para impressão
+    size_t total = sql_manager[name]->total_items();
+    size_t total2print = std::min((size_t)10, total);
+    vector<vector<DataInterface *>> vis_table;
+    vector<DataInterface *> row;
+    auto columns = sql_manager[name]->get_entities();
+
+    while (idx < total2print) {
+        row = sql_manager[name]->read_row(idx++);
+
+        if (row.size() != sql_manager[name]->get_total_entities()) break;
+        vis_table.push_back(row);
+
+        // Atualiza o tamanho máximo dos dados por coluna
+        for (int i = 0; i < sql_manager[name]->get_total_entities(); i++) {
+            size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size());
+        }
+
+        // Procurar pela coluna com o nome especificado
+        for (int i = 0; i < sql_manager[name]->get_total_entities(); i++) {
+            if (ent_key == columns[i].name && key == row[i]->toString()) {
+                // Registro encontrado
+                int numero_coluna = 1;
+                cout << "Registro encontrado: " << std::endl;
+                for (auto &data : row) {
+                    cout << "Valor da Coluna " << numero_coluna << " == " << data->toString() << " ";
+                    numero_coluna++;
+                }
+                cout << std::endl;
+                break;  // Saia do loop quando encontrar a correspondência
+            }
+        }
+    }
+    if (row.empty()) {
+        cout << "Nenhum registro encontrado" << std::endl;
+    }
+
+
 }
 
 
