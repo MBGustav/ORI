@@ -220,6 +220,8 @@ public:
     bool read_header(string header_path);
 
     void delete_row_by_id(int id);
+
+    void delete_row_by_id(int id, string name_table);
 };
 
 
@@ -525,73 +527,71 @@ bool FileHandler::read_header(string header_path) {
 }
 
 
-void FileHandler::delete_row_by_id(int id) {
-    open_data(ios::in | ios::out); // Abrir o arquivo para leitura e escrita
-
-    size_t row_size = row_offset();
-    size_t total_rows = get_total_elements();
-
-    vector<DataInterface*> row;
-    for (size_t i = 0; i < total_entities; i++) {
-        row.push_back(dt_alloc(entities[i].type));
-    }
-
-    size_t delete_index = -1;
-    bool found = false;
-
-    // Encontrar o índice da linha a ser deletada
-    for (size_t current_row = 0; current_row < total_rows; current_row++) {
-        seek_data(ios::beg, current_row * row_size);
-        for (size_t i = 0; i < total_entities; i++) {
-            row[i]->fread(data_file);
-        }
-
-        // Verificar se o ID da linha corresponde ao ID que queremos excluir
-        if (row[0]->toString() == std::to_string(id)) {
-            found = true;
-            delete_index = current_row; // Guardar o índice da linha a ser deletada
-            std::cout << "Registro encontrado e será deletado: ";
-            for (size_t i = 0; i < total_entities; i++) {
-                std::cout << "Valor da Coluna " << (i+1) << " == " << row[i]->toString() << " ";
-            }
-            std::cout << std::endl;
-            break; // Parar a busca após encontrar o registro
-        }
-    }
-
-    if (!found) {
-        std::cout << "ID não encontrado!" << std::endl;
-        close();
+void FileHandler::delete_row_by_id(int id, string name_table) {
+    // Abrir o arquivo original para leitura
+    string file_name = get_name_filepath(name_table, false);
+    std::fstream data_file(file_name, std::ios::in | std::ios::binary);
+    if (!data_file.is_open()) {
+        std::cerr << "Erro ao abrir o arquivo de dados!" << std::endl;
         return;
     }
 
-    // Sobrescrever as linhas seguintes para remover o registro deletado
-    for (size_t current_row = delete_index; current_row < total_rows - 1; current_row++) {
-        // Ler a próxima linha
-        seek_data(ios::beg, (current_row + 1) * row_size);
+    // Criar um arquivo temporário para escrita
+    std::string temp_file_name = "temp_data_file";
+    std::fstream temp_file(temp_file_name, std::ios::out | std::ios::binary);
+    if (!temp_file.is_open()) {
+        std::cerr << "Erro ao criar o arquivo temporário!" << std::endl;
+        return;
+    }
+
+    size_t row_size = row_offset();  // Tamanho de uma linha
+    size_t total_rows = get_total_elements();  // Total de linhas
+    bool found = false;
+
+    for (size_t current_row = 0; current_row < total_rows; current_row++) {
+        std::vector<DataInterface*> row;
+        for (size_t i = 0; i < total_entities; i++) {
+            row.push_back(dt_alloc(entities[i].type));
+        }
+
+        // Ler a linha atual
+        data_file.seekg(current_row * row_size);
         for (size_t i = 0; i < total_entities; i++) {
             row[i]->fread(data_file);
         }
 
-        // Reescrever esta linha na posição anterior
-        seek_data(ios::beg, current_row * row_size);
-        for (size_t i = 0; i < total_entities; i++) {
-            row[i]->fwrite(data_file);
+        // Se o ID não for o que queremos deletar, escrevemos no arquivo temporário
+        if (row[0]->toString() != std::to_string(id)) {
+            // Escrever no arquivo temporário
+            for (size_t i = 0; i < total_entities; i++) {
+                row[i]->fwrite(temp_file);  // Escreve linha no arquivo temporário
+            }
+        } else {
+            found = true;  // Registro a ser deletado foi encontrado
+            std::cout << "Registro com ID " << id << " deletado com sucesso!" << std::endl;
         }
     }
 
-    // Truncar o arquivo para remover a última linha duplicada
-    data_file.seekp((total_rows - 1) * row_size);
-    data_file.put(EOF);
+    // Fechar os arquivos
+    data_file.close();
+    temp_file.close();
 
-    // Atualizar o total de elementos e gravar o cabeçalho
-    total_elements--;
-    write_header();
+    if (found) {
+        // Apagar o arquivo original
+        std::remove(file_name.c_str());
 
-    close();
-    std::cout << "Registro deletado com sucesso!" << std::endl;
+        // Renomear o arquivo temporário para o nome do arquivo original
+        std::rename(temp_file_name.c_str(), file_name.c_str());
+
+        // Atualizar o total de elementos e gravar o cabeçalho
+        total_elements--;  // Reduzir o número total de elementos
+        write_header();    // Gravar o cabeçalho atualizado
+    } else {
+        std::cerr << "Registro com ID " << id << " não encontrado." << std::endl;
+        // Remover o arquivo temporário, já que não é necessário
+        std::remove(temp_file_name.c_str());
+    }
 }
-
 
 
 #endif /*FILEHANDLER_H_*/

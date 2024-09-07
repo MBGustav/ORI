@@ -177,7 +177,7 @@ void delte_row(vector<string> vector1, map<std::string, std::shared_ptr<SQLTable
     }
 
 
-    map[name]->delete_row(key);
+    map[name]->delete_row(key,name);
     map[name]->display();
     cout<<std::endl;
 }
