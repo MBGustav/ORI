@@ -444,6 +444,7 @@ void search_pkey(vector<string> args, std::map<std::string, std::shared_ptr<SQLT
         for(int i=0; i < sql_manager[name]->get_total_entities();i++) {
             size_ent[i] = std::max(size_ent[i], (row[i]->toString()).size());
         }
+
         for(auto &data : row){
             if(key == data->toString()){
                 int numero_coluna = 1;
@@ -536,7 +537,7 @@ void help_console() {
     cout << "║ - QUERY-PKEY   <table_name> <PKEY>                       ║\n";
     cout << "║ - QUERY-SKEY   <table_name> <entity_name> <PKEY>         ║\n";
     cout << "║ - UPDATE-DB                                              ║\n";
-    cout << "║ - DELETE FROM * <table_name> WHERE id = ?                ║\n";
+    cout << "║ - DELETE * FROM <table_name> WHERE id = ?                ║\n";
     cout << "║ - UPDATE * FROM <table_name> SET <entity> = <value> WHERE id = ? ║\n";
     cout << "╚══════════════════════════════════════════════════════════╝\n";
     cout << "╔══════════════════════════════════════════════════════════╗\n";

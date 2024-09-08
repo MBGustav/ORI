@@ -138,6 +138,10 @@ public:
     void update(string entity_name, string new_value, string id);
 
     void update(int idx, vector<DataInterface *> new_values);
+
+
+
+    static bool comparaPkey(DataInterface *a, DataInterface *b);
 };
 
 SimpleTableHandler::SimpleTableHandler(std::string filename, vector<EntityProperties> properties, bool temporary):
@@ -537,6 +541,10 @@ void SimpleTableHandler::delete_row(string id,string table_name){
 
 void SimpleTableHandler::update(int idx, vector<DataInterface*> new_values){
     file_handler.update(idx, new_values);
+}
+
+bool SimpleTableHandler::comparaPkey(DataInterface *a, DataInterface *b){
+    return a->toString() < b->toString();
 }
 
 
