@@ -537,6 +537,7 @@ void SimpleTableHandler::drop(){//BE CAREFUL, THAT DELETES EVERYTHING! >:(
 void SimpleTableHandler::delete_row(string id,string table_name){
     int id_int = stoi(id);
     file_handler.delete_row_by_id(id_int, table_name);
+    map[0].erase(id);
 }
 
 void SimpleTableHandler::update(int idx, vector<DataInterface*> new_values){
