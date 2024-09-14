@@ -477,6 +477,7 @@ bool SimpleTableHandler::insert(vector<string> row){
     // check primary key - if is valid, already contains
     if(valid_pkey(row[pkey_idx])) return false;
 
+
     //data conversion - check if possible ?
     vector<DataInterface*>insert_row(sz);
     for(int i = 0; i < sz; i++){
@@ -486,6 +487,8 @@ bool SimpleTableHandler::insert(vector<string> row){
 
 
     write_row(insert_row);
+
+    map[0].insert(pair<key_format, size_t>(row[pkey_idx], get_total_elements()-1));
 
     return true;
 }

@@ -448,14 +448,17 @@ void search_pkey(vector<string> args, std::map<std::string, std::shared_ptr<SQLT
         for(auto &data : row){
             if(key == data->toString()){
                 int numero_coluna = 1;
+                cout <<"╠════════════════╦═══════════════════════════════╣\n";
                 cout << "Registro encontrado: " << std::endl;
-                for (auto &data : row) {
-                    cout << "Valor da Coluna " << numero_coluna << " == " << data->toString() << " ";
+                for(auto &data : row){
+                    cout << "║ Coluna " << std::setw(14) << left << numero_coluna
+                         << "║ " << std::setw(30) << left << data->toString() << " ║\n";
                     numero_coluna++;
                 }
-                cout << std::endl;
+                cout << "╚════════════════╩╦═════════════════════════════╝\n";
                 break;
             }
+            cout << std::endl;
         }
     }
     if (row.empty()) {
