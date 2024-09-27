@@ -1,2 +1,0 @@
-C:\PROGRA~1\JETBRA~1\CLION2~1.1\bin\mingw\bin\ar.exe qc ..\libScratchQL_lib.a CMakeFiles/ScratchQL_lib.dir/src/DataInterface.cpp.obj CMakeFiles/ScratchQL_lib.dir/src/DateHandler.cpp.obj CMakeFiles/ScratchQL_lib.dir/src/FloatHandler.cpp.obj CMakeFiles/ScratchQL_lib.dir/src/IntHandler.cpp.obj CMakeFiles/ScratchQL_lib.dir/src/StringHandler.cpp.obj CMakeFiles/ScratchQL_lib.dir/src/FileHandler.cpp.obj
-C:\PROGRA~1\JETBRA~1\CLION2~1.1\bin\mingw\bin\ranlib.exe ..\libScratchQL_lib.a

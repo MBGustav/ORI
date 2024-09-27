@@ -9,3 +9,6 @@ Project/FolderTables/*.*bin
 **/interface
 **/*.bin
 **/*.hbin
+**/**.exe
+**/cmake-build-debug/**
+**/.idea/**
