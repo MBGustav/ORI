@@ -67,6 +67,13 @@ BinPlusTree::BinPlusTree(BinPlusTree&& other) noexcept
     other.root = nullptr;
 }
 
+BinPlusTree::BinPlusTree(const BinPlusTree& other)
+    : root(nullptr)
+{
+    Node* prevLeaf = nullptr;
+    root = cloneNode(other.root, nullptr, prevLeaf);
+}
+
 bool BinPlusTree::insertNode(const Index& value)
 {
     if (value.key.empty()) {
@@ -96,6 +103,17 @@ BinPlusTree& BinPlusTree::operator=(BinPlusTree&& other) noexcept
     return *this;
 }
 
+BinPlusTree& BinPlusTree::operator=(const BinPlusTree& other)
+{
+    if (this != &other) {
+        clear(root);
+        root = nullptr;
+        Node* prevLeaf = nullptr;
+        root = cloneNode(other.root, nullptr, prevLeaf);
+    }
+    return *this;
+}
+
 BinPlusTree::~BinPlusTree()
 {
     clear(root);
@@ -120,6 +138,37 @@ void BinPlusTree::clear(Node* node)
     }
 
     delete node;
+}
+
+BinPlusTree::Node* BinPlusTree::cloneNode(const Node* node, Node* parent, Node*& prevLeaf)
+{
+    if (!node) {
+        return nullptr;
+    }
+
+    Node* copy = new Node(node->isLeaf);
+    copy->keyCount = node->keyCount;
+    copy->childCount = node->childCount;
+    copy->data = node->data;
+    copy->parent = parent;
+    copy->next = nullptr;
+
+    for (std::size_t i = 0; i < node->keyCount; ++i) {
+        copy->keys[i] = node->keys[i];
+    }
+
+    if (node->isLeaf) {
+        if (prevLeaf) {
+            prevLeaf->next = copy;
+        }
+        prevLeaf = copy;
+    } else {
+        for (std::size_t i = 0; i < node->childCount; ++i) {
+            copy->children[i] = cloneNode(node->children[i], copy, prevLeaf);
+        }
+    }
+
+    return copy;
 }
 
 std::string BinPlusTree::firstKey(const Node* node)

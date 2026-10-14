@@ -19,6 +19,7 @@ set(SQL_SOURCES
 "src/IntHandler.cpp"
 "src/StringHandler.cpp"
 "src/FileHandler.cpp"
+"src/BinPlusTree.cpp"
 )
 
 # Link Files with the project

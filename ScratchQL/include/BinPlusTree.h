@@ -15,8 +15,8 @@ public:
     BinPlusTree();
     ~BinPlusTree();
 
-    BinPlusTree(const BinPlusTree&) = delete;
-    BinPlusTree& operator=(const BinPlusTree&) = delete;
+    BinPlusTree(const BinPlusTree& other);
+    BinPlusTree& operator=(const BinPlusTree& other);
     BinPlusTree(BinPlusTree&& other) noexcept;
     BinPlusTree& operator=(BinPlusTree&& other) noexcept;
 
@@ -41,6 +41,7 @@ private:
     bool deleteNode(Node*& node, const std::string& value);
 
     void clear(Node* node);
+    static Node* cloneNode(const Node* node, Node* parent, Node*& prevLeaf);
     void refreshKeys(Node* node);
     static std::size_t childIndex(const Node* node, const std::string& value);
     static std::string firstKey(const Node* node);
