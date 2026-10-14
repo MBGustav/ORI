@@ -1,14 +1,60 @@
-**/.vscode/**
+## Build outputs
 **/build/**
-Project/main
-Project/FolderTables/*.*bin
-**/archived/**
-**/__pycache__/**
+**/cmake-build-*/**
+**/CMakeFiles/**
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
+**/compile_commands.json
+**/*.ninja
+**/install/**
+**/out/**
 
-**/unit_test
-**/interface
+## Binaries / libraries / objects
+**/*.o
+**/*.obj
+**/*.lo
+**/*.la
+**/*.a
+**/*.lib
+**/*.so
+**/*.so.*
+**/*.dll
+**/*.dylib
+**/*.exe
+**/*.out
+**/*.app
 **/*.bin
 **/*.hbin
-**/**.exe
-**/cmake-build-debug/**
+**/*.pdb
+
+## Generated files
+**/*.gcda
+**/*.gcno
+**/*.gcov
+**/*.profraw
+**/*.profdata
+**/*.rsp
+
+## IDE / editor
+**/.vscode/**
 **/.idea/**
+**/*.code-workspace
+**/.clangd
+**/.ccls-cache/**
+**/.cache/**
+
+## Package managers / dependency caches
+**/vcpkg_installed/**
+**/conanbuildinfo.*
+**/conan.lock
+**/conanfile.txt.user
+**/conanfile.py.user
+
+## Misc
+**/__pycache__/**
+**/archived/**
+**/unit_test
+**/interface
+**/main
+**/*.*bin
