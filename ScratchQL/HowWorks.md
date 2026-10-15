@@ -139,8 +139,13 @@ graph TD
 Searching `40` reads the root (`40 >= 30` → go right), then binary-searches the right leaf.
 
 
-## 
-The data table is organized in a dual structure, where the table schema is stored in a B+ Tree and the records are stored in a RecordStore. The RecordStore is also organized as a B+ Tree, where each record is stored in a leaf node.
+## Table: schema, records and indexes
+
+A table is a dual structure:
+
+- the **table schema** (columns, types, and which columns are indexed) defines the shape of a row;
+- the **records** live in a `RecordStore`, itself organized as a **B+Tree** whose **leaf nodes hold the rows**;
+- the **indexes** are one `IndexTree` per indexed column: a `BinPlusTree` keyed so that every stored key pairs a column value with the `RecordID` of the row that holds it.
 
 ```mermaid
 graph TD
@@ -161,6 +166,60 @@ graph TD
     Indexes --> BTreeId
     Indexes --> BTreeName
 ```
+
+### RecordStore as a B+Tree
+
+`RecordStore` keys each row by its `RecordID` (monotonic, 0-based) and stores the rows in the tree's leaves. It reuses the same page stack as the indexes:
+
+- **leaf pages** (`NODE_TYPE_LEAF`) hold `uint64 key + Record bytes` entries plus a `next` leaf reference, so a full scan is a left-to-right walk;
+- **internal pages** (`NODE_TYPE_INTERNAL`) hold separator keys (`uint64`) and child page ids — the same layout `PageCodec::encode`/`decode` already use;
+- **page 0** is a **meta page** (`NODE_TYPE_META`) storing the root page id.
+
+| Offset | Field | Size | Meaning |
+|--------|-------|------|---------|
+| 0 | `type` | 1 byte | `NODE_TYPE_LEAF` |
+| 1 | `key_count` | 2 bytes | number of rows in the leaf |
+| 3 | `next_page` | 8 bytes | next leaf page id (0 = end of chain) |
+| 11 | entries | variable | each: `uint64` key + `uint32` value count + values |
+
+The tree is held in memory while the table is open, and every `insert` rewrites the affected pages, so the on-disk copy always mirrors the tree. On construction the store reads the meta page and rebuilds the tree by reading the node pages back. A row that does not fit in one leaf page is rejected.
+
+### Finding rows by value
+
+Each indexed column owns an `IndexTree`, which wraps a `BinPlusTree`. Because a
+`BinPlusTree` stores **unique** string keys, the pair (column value, `RecordID`)
+is encoded into a single key:
+
+```text
+<value length as decimal> ':' <value bytes> <RecordID as 20 decimal digits>
+```
+
+- the length prefix makes the value boundary unambiguous, so values that contain
+  `:` or digits still group correctly;
+- the fixed-width `RecordID` suffix makes each row's key unique.
+
+Every row that shares a value therefore shares a key **prefix**. `BinPlusTree::searchPrefix`
+walks the linked leaves from the first key `>= prefix` and collects the matches;
+`IndexTree::search` then decodes the trailing id of each one. So duplicate column
+values are supported and `TableWrapper::find("id", value)` returns the `RecordID`
+of *every* matching row:
+
+```mermaid
+flowchart LR
+    V["value = 7"] --> P["prefix \"1:7\""]
+    P --> K1["\"1:7\" + id 0"]
+    P --> K2["\"1:7\" + id 3"]
+    K1 --> OUT["find -> [0, 3]"]
+    K2 --> OUT
+```
+
+### Indexes are rebuilt on load
+
+The `RecordStore` persists only the rows (and the tree that holds them); the
+`IndexTree` indexes are **not** written to disk. Instead, when a `TableWrapper` is
+constructed it walks every row returned by the `RecordStore` and re-populates the
+index of each column flagged `indexed`. That way a reopened table has indexes
+consistent with its persisted data.
 
 
 ## Complexity

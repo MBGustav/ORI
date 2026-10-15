@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "baseline_common.h"
-#include "BinPlusTree.h"
+#include "IndexTree.h"
 
 /*
  * TableSchema.h
@@ -46,11 +46,11 @@ public:
         trees_.resize(columnCount);
     }
 
-    BinPlusTree& operator[](std::size_t columnId) {
+    IndexTree& operator[](std::size_t columnId) {
         return trees_.at(columnId);
     }
 
-    const BinPlusTree& operator[](std::size_t columnId) const {
+    const IndexTree& operator[](std::size_t columnId) const {
         return trees_.at(columnId);
     }
 
@@ -59,7 +59,7 @@ public:
     }
 
 private:
-    std::vector<BinPlusTree> trees_;
+    std::vector<IndexTree> trees_;
 };
 
 // The "TableSchema" layer: column definitions plus their indexes.

@@ -55,17 +55,33 @@ void testTableSchema() {
     check(schema.columnCount() == 3, "schema records the column count");
     check(schema.indexes.size() == 3, "one index per column");
 
-    schema.indexes[0].insertNode("1");
-    check(schema.indexes[0].searchNode("1"), "index 0 stores a key");
-    check(!schema.indexes[1].searchNode("1"), "indexes are independent");
+    schema.indexes[0].insert("1", 7);
+
+    std::vector<RecordID> ids;
+    schema.indexes[0].search("1", ids);
+    check(ids.size() == 1 && ids[0] == 7,
+          "index 0 maps a value to a RecordID");
+
+    std::vector<RecordID> independent;
+    schema.indexes[1].search("1", independent);
+    check(independent.empty(), "indexes are independent");
 
     // Copying a schema must deep-copy its indexes.
     TableSchema copy = schema;
-    copy.indexes[0].insertNode("99");
+    copy.indexes[0].insert("99", 8);
 
-    check(copy.indexes[0].searchNode("99"), "copy has the new key");
-    check(!schema.indexes[0].searchNode("99"), "original is unaffected by the copy");
-    check(schema.indexes[0].searchNode("1"), "original keeps its own keys");
+    std::vector<RecordID> copyIds;
+    copy.indexes[0].search("99", copyIds);
+    check(copyIds.size() == 1 && copyIds[0] == 8, "copy has the new entry");
+
+    std::vector<RecordID> originalNew;
+    schema.indexes[0].search("99", originalNew);
+    check(originalNew.empty(), "original is unaffected by the copy");
+
+    std::vector<RecordID> originalKept;
+    schema.indexes[0].search("1", originalKept);
+    check(originalKept.size() == 1 && originalKept[0] == 7,
+          "original keeps its own entries");
 }
 
 // -------------------------------------------------------------- RecordStore
@@ -153,11 +169,18 @@ void testRecordStorePaging() {
         check(std::get<std::string>(reopened.at(50).values[1]) == filler,
               "string value survives the page boundary");
 
-        // The last page is reused rather than starting a fresh page.
-        const uint64_t pagesBefore = reopened.pageCount();
+        // Appending after a reload inserts through the B+Tree and is durable.
         reopened.insert({Value{int64_t{total}}, Value{filler}});
-        check(reopened.pageCount() == pagesBefore,
-              "appending reuses the last page when it still has room");
+        check(reopened.size() == static_cast<std::size_t>(total + 1),
+              "appending after reload grows the store");
+    }
+
+    {
+        RecordStore reopened(path);
+        check(reopened.size() == static_cast<std::size_t>(total + 1),
+              "appended row persists across another reload");
+        check(std::get<int64_t>(reopened.at(total).values[0]) == total,
+              "appended row has the expected key");
     }
 
     std::remove(path.c_str());
@@ -186,14 +209,23 @@ void testTableWrapper() {
 
     check(table.recordCount() == 2, "insertRecord updates the record count");
 
-    // The indexed column ("id") is maintained; the plain column ("name") is not.
-    check(table.schema().indexes[0].searchNode("1"), "indexed column is indexed");
-    check(table.schema().indexes[0].searchNode("2"), "second key is indexed");
-    check(!table.schema().indexes[1].searchNode("alice"),
-          "non-indexed column is not indexed");
+    // The indexed column ("id") maps values back to their row ids.
+    const std::vector<RecordID> rowOne = table.find("id", Value{int64_t{1}});
+    check(rowOne.size() == 1 && rowOne[0] == 0,
+          "find maps a value to its RecordID");
+
+    const std::vector<RecordID> rowTwo = table.find("id", Value{int64_t{2}});
+    check(rowTwo.size() == 1 && rowTwo[0] == 1,
+          "find maps the second value");
 
     check(std::get<std::string>(table.recordStore().at(0).values[1]) == "alice",
           "record is readable through the store");
+
+    // Duplicate values are supported and both rows are returned.
+    table.insertRecord({Value{int64_t{1}}, Value{std::string{"alice2"}}});
+    const std::vector<RecordID> duplicates = table.find("id", Value{int64_t{1}});
+    check(duplicates.size() == 2, "duplicate values map to multiple rows");
+    check(table.recordCount() == 3, "duplicate insert grows the record count");
 
     bool threw = false;
     try {
@@ -202,9 +234,65 @@ void testTableWrapper() {
         threw = true;
     }
     check(threw, "insertRecord rejects a value count mismatch");
-    check(table.recordCount() == 2, "rejected insert does not change the count");
+    check(table.recordCount() == 3, "rejected insert does not change the count");
+
+    bool lookupThrew = false;
+    try {
+        table.find("name", Value{std::string{"alice"}});  // not indexed
+    } catch (const std::invalid_argument&) {
+        lookupThrew = true;
+    }
+    check(lookupThrew, "find rejects a non-indexed column");
+
+    // Reopening the table must reload the rows AND rebuild the indexes.
+    {
+        TableWrapper reopened(schema, path);
+        check(reopened.recordCount() == 3, "reopened table reloads its rows");
+
+        const std::vector<RecordID> ids1 = reopened.find("id", Value{int64_t{1}});
+        check(ids1.size() == 2,
+              "index is rebuilt on reopen (duplicate value)");
+
+        const std::vector<RecordID> ids2 = reopened.find("id", Value{int64_t{2}});
+        check(ids2.size() == 1 && ids2[0] == 1,
+              "index is rebuilt on reopen (second value)");
+    }
 
     std::remove(path.c_str());
+}
+
+// --------------------------------------------------------------- IndexTree
+
+void testIndexTree() {
+    std::cout << "\n== IndexTree ==\n";
+
+    IndexTree index;
+    check(index.empty(), "a new index is empty");
+
+    check(index.insert("alice", 0), "insert (value, id)");
+    check(index.insert("alice", 5), "insert a duplicate value with a new id");
+    check(!index.insert("alice", 5), "the same (value, id) pair is rejected");
+    check(index.insert("bob", 1), "insert a different value");
+
+    std::vector<RecordID> alice;
+    check(index.search("alice", alice) == 2, "search returns every matching row");
+    check(alice.size() == 2 && alice[0] == 0 && alice[1] == 5,
+          "matching RecordIDs are returned in order");
+
+    std::vector<RecordID> bob;
+    check(index.search("bob", bob) == 1 && bob[0] == 1,
+          "lookup is scoped to the exact value");
+
+    std::vector<RecordID> none;
+    check(index.search("carol", none) == 0, "search misses an absent value");
+
+    check(index.contains("alice"), "contains finds a stored value");
+    check(!index.contains("carol"), "contains misses an absent value");
+
+    check(index.remove("alice", 0), "remove a (value, id) pair");
+    std::vector<RecordID> afterRemove;
+    check(index.search("alice", afterRemove) == 1 && afterRemove[0] == 5,
+          "only the removed row is gone");
 }
 
 // -------------------------------------------------- BinPlusTree copy/assign
@@ -246,6 +334,7 @@ int main() {
     testRecordStore();
     testRecordStorePaging();
     testTableWrapper();
+    testIndexTree();
     testBinPlusTreeCopy();
 
     std::cout << "\n";

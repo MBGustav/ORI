@@ -23,13 +23,19 @@
  *   remainder: free space
  */
 namespace page_layout {
-    constexpr uint8_t NODE_TYPE_LEAF = 1;
-    constexpr uint8_t NODE_TYPE_INTERNAL = 2;
-    constexpr uint8_t NODE_TYPE_RECORD = 3;   // data page holding table rows
+    constexpr uint8_t NODE_TYPE_LEAF = 1;     // B+Tree leaf: holds row data
+    constexpr uint8_t NODE_TYPE_INTERNAL = 2; // B+Tree internal: keys + child refs
+    constexpr uint8_t NODE_TYPE_META = 5;     // page 0: root / metadata
     constexpr size_t PAGE_HEADER_SIZE = 5;
-    constexpr size_t RECORD_PAGE_HEADER_SIZE = 5;
     constexpr size_t PAGE_KEY_SIZE = sizeof(uint64_t);
     constexpr size_t PAGE_REF_SIZE = sizeof(uint64_t);
+
+    // Leaf pages store keys + rows + the next-leaf reference.
+    //   offset 0  : type       (1 byte, NODE_TYPE_LEAF)
+    //   offset 1  : key_count  (2 bytes)
+    //   offset 3  : next_page  (8 bytes)
+    //   offset 11 : entries    (each: uint64 key + Record bytes)
+    constexpr size_t LEAF_PAGE_HEADER_SIZE = 11;
 
     inline uint16_t read_u16_le(const uint8_t* ptr) {
         return static_cast<uint16_t>(

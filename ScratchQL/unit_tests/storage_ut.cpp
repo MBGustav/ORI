@@ -254,6 +254,42 @@ void testBinPlusTree() {
         check(tree.deleteNode(Index{"pk", 42}), "delete an Index");
         check(!tree.searchNode("pk"), "Index key is gone after delete");
     }
+
+    {
+        // Prefix enumeration (used by the column index).
+        BinPlusTree tree;
+        tree.insertNode("key-a");
+        tree.insertNode("key-b");
+        tree.insertNode("zzz");
+
+        std::vector<std::string> matches;
+        tree.searchPrefix("key-", matches);
+        check(matches.size() == 2, "searchPrefix collects matching keys");
+        check(matches.size() == 2 && matches[0] == "key-a" && matches[1] == "key-b",
+              "searchPrefix returns keys in order");
+
+        std::vector<std::string> none;
+        tree.searchPrefix("nope", none);
+        check(none.empty(), "searchPrefix misses an absent prefix");
+    }
+
+    {
+        // The leaf chain must stay valid across splits and deletions.
+        BinPlusTree tree;
+        for (int i = 0; i < 100; ++i) {
+            tree.insertNode("k" + std::to_string(i));
+        }
+        for (int i = 0; i < 100; i += 2) {
+            tree.deleteNode("k" + std::to_string(i));
+        }
+
+        std::vector<std::string> matches;
+        tree.searchPrefix("k1", matches);
+        // k1 plus the surviving odd k11, k13, k15, k17, k19.
+        check(matches.size() == 6, "searchPrefix works after deleting leaves");
+        check(!matches.empty() && matches.front() == "k1",
+              "searchPrefix keeps the first match in order");
+    }
 }
 
 }  // namespace

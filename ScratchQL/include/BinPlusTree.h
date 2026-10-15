@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <string>
+#include <vector>
 #include "baseline_common.h"
 /**
  * Ordered string index used by the SQL layer.
@@ -28,6 +29,11 @@ public:
     bool deleteNode(const std::string& value);
     bool empty() const;
     void printTree() const;
+
+    // Appends every stored key that begins with @p prefix to @p out, in
+    // ascending order. Used to enumerate all entries that share an index key
+    // (e.g. every RecordID stored for the same column value).
+    void searchPrefix(const std::string& prefix, std::vector<std::string>& out) const;
 private:
     struct Node;
 
@@ -42,6 +48,8 @@ private:
 
     void clear(Node* node);
     static Node* cloneNode(const Node* node, Node* parent, Node*& prevLeaf);
+    void rechainLeaves();
+    void rechainLeaves(Node* node, Node*& prev);
     void refreshKeys(Node* node);
     static std::size_t childIndex(const Node* node, const std::string& value);
     static std::string firstKey(const Node* node);

@@ -393,9 +393,75 @@ bool BinPlusTree::insertNode(Node*& node, const std::string& value, Node*& split
     return true;
 }
 
+void BinPlusTree::searchPrefix(const std::string& prefix, std::vector<std::string>& out) const
+{
+    if (!root || prefix.empty()) {
+        return;
+    }
+
+    // Descend to the leftmost leaf that can hold a key >= prefix. Every key that
+    // begins with prefix sorts at or after that leaf, and keys are unique.
+    const Node* leaf = root;
+    while (leaf && !leaf->isLeaf) {
+        const std::size_t index = childIndex(leaf, prefix);
+        if (index >= leaf->childCount || leaf->children[index] == nullptr) {
+            return;
+        }
+        leaf = leaf->children[index];
+    }
+
+    while (leaf != nullptr) {
+        for (std::size_t i = 0; i < leaf->keyCount; ++i) {
+            const std::string& key = leaf->keys[i];
+            if (key.size() >= prefix.size() &&
+                key.compare(0, prefix.size(), prefix) == 0) {
+                out.push_back(key);
+            } else if (key > prefix) {
+                return;  // moved past the prefix range
+            }
+        }
+        leaf = leaf->next;
+    }
+}
+
 bool BinPlusTree::deleteNode(const std::string& value)
 {
-    return deleteNode(root, value);
+    if (!deleteNode(root, value)) {
+        return false;
+    }
+
+    // Deleting keys can remove whole leaves; rebuild the leaf chain so the
+    // `next` links stay valid (used by searchPrefix and cloneNode).
+    rechainLeaves();
+    return true;
+}
+
+void BinPlusTree::rechainLeaves()
+{
+    Node* prev = nullptr;
+    rechainLeaves(root, prev);
+    if (prev != nullptr) {
+        prev->next = nullptr;
+    }
+}
+
+void BinPlusTree::rechainLeaves(Node* node, Node*& prev)
+{
+    if (!node) {
+        return;
+    }
+
+    if (node->isLeaf) {
+        if (prev != nullptr) {
+            prev->next = node;
+        }
+        prev = node;
+        return;
+    }
+
+    for (std::size_t i = 0; i < node->childCount; ++i) {
+        rechainLeaves(node->children[i], prev);
+    }
 }
 
 bool BinPlusTree::deleteNode(Node*& node, const std::string& value)

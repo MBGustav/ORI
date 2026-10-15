@@ -70,13 +70,13 @@ public:
     }
 
     /*
-     * Record pages (NODE_TYPE_RECORD) store table rows. The layout is:
-     *   offset 0 : type          (1 byte, NODE_TYPE_RECORD)
-     *   offset 1 : record_count  (2 bytes)
-     *   offset 3 : reserved      (2 bytes)
-     *   offset 5 : records, back to back. Each record is:
-     *              uint32 value_count, then value_count values, where each
-     *              value is uint8 tag + payload (mirrors RecordStore's codec).
+     * Leaf pages of the record B+Tree store the rows themselves. The layout is:
+     *   offset 0  : type       (1 byte, NODE_TYPE_LEAF)
+     *   offset 1  : key_count  (2 bytes)
+     *   offset 3  : next_page  (8 bytes, PageID of the next leaf or 0)
+     *   offset 11 : entries, one per row:
+     *               uint64 key (RecordID) + uint32 value_count + values,
+     *               where each value is uint8 tag + payload.
      */
 
     static std::size_t encodedValueSize(const Value& value) {
@@ -98,82 +98,107 @@ public:
         return total;
     }
 
-    static std::size_t encodedRecordsSize(const std::vector<Record>& records) {
-        std::size_t total = page_layout::RECORD_PAGE_HEADER_SIZE;
+    static std::size_t encodedLeafEntrySize(const Record& record) {
+        return sizeof(uint64_t) + encodedRecordSize(record);
+    }
+
+    static std::size_t encodedLeafSize(
+        const std::vector<RecordID>& keys,
+        const std::vector<Record>& records
+    ) {
+        (void)keys;
+        std::size_t total = page_layout::LEAF_PAGE_HEADER_SIZE;
         for (const Record& record : records) {
-            total += encodedRecordSize(record);
+            total += encodedLeafEntrySize(record);
         }
         return total;
     }
 
     /**
-     * @brief Encode @p records into a fixed-size record page @p buffer.
+     * @brief Encode leaf entries into a fixed-size leaf page @p buffer.
      *
      * @throws std::invalid_argument if @p buffer is null.
-     * @throws std::length_error if @p size is too small for all @p records.
+     * @throws std::length_error if @p size is too small for all entries.
      */
-    static void encodeRecords(
+    static void encodeLeaf(
+        const std::vector<RecordID>& keys,
         const std::vector<Record>& records,
+        PageID next,
         uint8_t* buffer,
         std::size_t size
     ) {
         if (buffer == nullptr) {
-            throw std::invalid_argument("PageCodec::encodeRecords: null buffer");
+            throw std::invalid_argument("PageCodec::encodeLeaf: null buffer");
         }
 
-        const std::size_t required = encodedRecordsSize(records);
+        const std::size_t required = encodedLeafSize(keys, records);
         if (size < required) {
-            throw std::length_error("PageCodec::encodeRecords: buffer too small");
+            throw std::length_error("PageCodec::encodeLeaf: buffer too small");
         }
 
         std::memset(buffer, 0, size);
-        buffer[0] = page_layout::NODE_TYPE_RECORD;
+        buffer[0] = page_layout::NODE_TYPE_LEAF;
         page_layout::write_u16_le(buffer + 1, static_cast<uint16_t>(records.size()));
+        page_layout::write_u64_le(buffer + 3, static_cast<uint64_t>(next));
 
-        std::size_t offset = page_layout::RECORD_PAGE_HEADER_SIZE;
-        for (const Record& record : records) {
+        std::size_t offset = page_layout::LEAF_PAGE_HEADER_SIZE;
+        for (std::size_t i = 0; i < records.size(); ++i) {
+            page_layout::write_u64_le(buffer + offset, static_cast<uint64_t>(keys[i]));
+            offset += sizeof(uint64_t);
+
             page_layout::write_u32_le(
                 buffer + offset,
-                static_cast<uint32_t>(record.values.size())
+                static_cast<uint32_t>(records[i].values.size())
             );
             offset += sizeof(uint32_t);
 
-            for (const Value& value : record.values) {
+            for (const Value& value : records[i].values) {
                 offset = writeValueAt(buffer, offset, value);
             }
         }
     }
 
     /**
-     * @brief Decode a record page from @p buffer.
+     * @brief Decode a leaf page from @p buffer.
      *
-     * @throws std::invalid_argument if the page is null or not a record page.
+     * @throws std::invalid_argument if the page is null or not a leaf page.
      * @throws std::length_error if the page is truncated.
      */
-    static std::vector<Record> decodeRecords(
+    static void decodeLeaf(
         const uint8_t* buffer,
-        std::size_t size
+        std::size_t size,
+        std::vector<RecordID>& keys,
+        std::vector<Record>& records,
+        PageID& next
     ) {
         if (buffer == nullptr) {
-            throw std::invalid_argument("PageCodec::decodeRecords: null buffer");
+            throw std::invalid_argument("PageCodec::decodeLeaf: null buffer");
         }
-        if (size < page_layout::RECORD_PAGE_HEADER_SIZE) {
-            throw std::length_error("PageCodec::decodeRecords: buffer smaller than header");
+        if (size < page_layout::LEAF_PAGE_HEADER_SIZE) {
+            throw std::length_error("PageCodec::decodeLeaf: buffer smaller than header");
         }
-        if (buffer[0] != page_layout::NODE_TYPE_RECORD) {
-            throw std::invalid_argument("PageCodec::decodeRecords: not a record page");
+        if (buffer[0] != page_layout::NODE_TYPE_LEAF) {
+            throw std::invalid_argument("PageCodec::decodeLeaf: not a leaf page");
         }
 
         const uint16_t count = page_layout::read_u16_le(buffer + 1);
-        std::size_t offset = page_layout::RECORD_PAGE_HEADER_SIZE;
+        next = static_cast<PageID>(page_layout::read_u64_le(buffer + 3));
 
-        std::vector<Record> records;
+        std::size_t offset = page_layout::LEAF_PAGE_HEADER_SIZE;
+
+        keys.clear();
+        records.clear();
+        keys.reserve(count);
         records.reserve(count);
 
         for (uint16_t i = 0; i < count; ++i) {
-            if (offset + sizeof(uint32_t) > size) {
-                throw std::length_error("PageCodec::decodeRecords: truncated record");
+            if (offset + sizeof(uint64_t) + sizeof(uint32_t) > size) {
+                throw std::length_error("PageCodec::decodeLeaf: truncated entry");
             }
+
+            const uint64_t key = page_layout::read_u64_le(buffer + offset);
+            offset += sizeof(uint64_t);
+
             const uint32_t valueCount = page_layout::read_u32_le(buffer + offset);
             offset += sizeof(uint32_t);
 
@@ -182,10 +207,10 @@ public:
             for (uint32_t j = 0; j < valueCount; ++j) {
                 record.values.push_back(readValueAt(buffer, offset, size));
             }
+
+            keys.push_back(static_cast<RecordID>(key));
             records.push_back(std::move(record));
         }
-
-        return records;
     }
 
     /**
@@ -285,7 +310,7 @@ private:
         std::size_t size
     ) {
         if (offset + 1 > size) {
-            throw std::length_error("PageCodec::decodeRecords: truncated value");
+            throw std::length_error("PageCodec::decodeLeaf: truncated value");
         }
 
         const uint8_t tag = buffer[offset++];
@@ -293,7 +318,7 @@ private:
         switch (tag) {
             case 0: {
                 if (offset + sizeof(int64_t) > size) {
-                    throw std::length_error("PageCodec::decodeRecords: truncated int value");
+                    throw std::length_error("PageCodec::decodeLeaf: truncated int value");
                 }
                 int64_t number = 0;
                 std::memcpy(&number, buffer + offset, sizeof(number));
@@ -302,7 +327,7 @@ private:
             }
             case 1: {
                 if (offset + sizeof(double) > size) {
-                    throw std::length_error("PageCodec::decodeRecords: truncated double value");
+                    throw std::length_error("PageCodec::decodeLeaf: truncated double value");
                 }
                 double number = 0.0;
                 std::memcpy(&number, buffer + offset, sizeof(number));
@@ -311,19 +336,19 @@ private:
             }
             case 2: {
                 if (offset + 1 > size) {
-                    throw std::length_error("PageCodec::decodeRecords: truncated bool value");
+                    throw std::length_error("PageCodec::decodeLeaf: truncated bool value");
                 }
                 const bool flag = buffer[offset++] != 0u;
                 return flag;
             }
             case 3: {
                 if (offset + sizeof(uint32_t) > size) {
-                    throw std::length_error("PageCodec::decodeRecords: truncated string length");
+                    throw std::length_error("PageCodec::decodeLeaf: truncated string length");
                 }
                 const uint32_t length = page_layout::read_u32_le(buffer + offset);
                 offset += sizeof(uint32_t);
                 if (offset + length > size) {
-                    throw std::length_error("PageCodec::decodeRecords: truncated string");
+                    throw std::length_error("PageCodec::decodeLeaf: truncated string");
                 }
                 std::string text(
                     reinterpret_cast<const char*>(buffer + offset),
