@@ -9,31 +9,54 @@
 #include <vector>
 
 #include "baseline_common.h"
+#include "PageCodec.h"
+#include "PageManager.h"
 
 /*
  * RecordStore.h
  *
- * The "RecordStore" layer: owns the table's records and mirrors them to a
- * binary file. Each record is a row of Values; RecordID is its 0-based
- * position, so records are referenced by index.
+ * The "RecordStore" layer: owns the table's records and persists them through
+ * the page storage stack (PageManager -> FileManager), serializing each page
+ * with PageCodec's record-page format.
  *
- * On-disk format (little-endian, sequential):
- *   uint32  valueCount
- *   value   valueCount times, where each value is
- *           uint8 tag (0=int64, 1=double, 2=bool, 3=string)
- *           payload (int64/double/bool, or uint32 length + bytes for string)
+ * Records are appended in order; a RecordID is the 0-based position of a row
+ * across all pages. Rows are packed into fixed PAGE_SIZE pages: a row is added
+ * to the current page while it fits, otherwise a new page is started.
+ *
+ * The in-memory std::vector<Record> is a cache rebuilt from the pages on
+ * construction, so `at()`/`size()` never touch the file.
  */
 class RecordStore {
 public:
     explicit RecordStore(std::string filePath)
-        : path_(std::move(filePath)) {
+        : path_(std::move(filePath))
+    {
+        ensureFileExists();
+        pages_.open(path_, std::ios::in | std::ios::out | std::ios::binary);
         load();
     }
 
     RecordID insert(const std::vector<Value>& values) {
         Record record{values};
-        append(record);
-        records_.push_back(std::move(record));
+
+        if (PageCodec::encodedRecordSize(record) + page_layout::RECORD_PAGE_HEADER_SIZE
+                > PAGE_SIZE) {
+            throw std::runtime_error("RecordStore: record does not fit in a page");
+        }
+
+        std::vector<Record> candidate = currentPageRecords_;
+        candidate.push_back(record);
+
+        if (PageCodec::encodedRecordsSize(candidate) > PAGE_SIZE) {
+            ++currentPage_;
+            currentPageRecords_.clear();
+            candidate.assign(1, record);
+        }
+
+        currentPageRecords_ = std::move(candidate);
+        records_.push_back(record);
+        writeCurrentPage();
+
         return static_cast<RecordID>(records_.size() - 1);
     }
 
@@ -56,111 +79,58 @@ public:
         return path_;
     }
 
+    // Number of data pages currently stored on disk.
+    uint64_t pageCount() {
+        return pages_.pageCount();
+    }
+
 private:
-    static void writeValue(std::ostream& out, const Value& value) {
-        const uint8_t tag = static_cast<uint8_t>(value.index());
-        out.write(reinterpret_cast<const char*>(&tag), sizeof(tag));
-
-        switch (tag) {
-            case 0: {
-                const int64_t number = std::get<int64_t>(value);
-                out.write(reinterpret_cast<const char*>(&number), sizeof(number));
-                break;
-            }
-            case 1: {
-                const double number = std::get<double>(value);
-                out.write(reinterpret_cast<const char*>(&number), sizeof(number));
-                break;
-            }
-            case 2: {
-                const bool flag = std::get<bool>(value);
-                out.write(reinterpret_cast<const char*>(&flag), sizeof(flag));
-                break;
-            }
-            case 3: {
-                const std::string& text = std::get<std::string>(value);
-                const uint32_t length = static_cast<uint32_t>(text.size());
-                out.write(reinterpret_cast<const char*>(&length), sizeof(length));
-                out.write(text.data(), static_cast<std::streamsize>(length));
-                break;
-            }
-            default:
-                throw std::runtime_error("RecordStore: unsupported value type");
-        }
-    }
-
-    static Value readValue(std::istream& in) {
-        uint8_t tag = 0;
-        in.read(reinterpret_cast<char*>(&tag), sizeof(tag));
-
-        switch (tag) {
-            case 0: {
-                int64_t number = 0;
-                in.read(reinterpret_cast<char*>(&number), sizeof(number));
-                return number;
-            }
-            case 1: {
-                double number = 0.0;
-                in.read(reinterpret_cast<char*>(&number), sizeof(number));
-                return number;
-            }
-            case 2: {
-                bool flag = false;
-                in.read(reinterpret_cast<char*>(&flag), sizeof(flag));
-                return flag;
-            }
-            case 3: {
-                uint32_t length = 0;
-                in.read(reinterpret_cast<char*>(&length), sizeof(length));
-                std::string text(length, '\0');
-                if (length > 0) {
-                    in.read(&text[0], static_cast<std::streamsize>(length));
-                }
-                return text;
-            }
-            default:
-                throw std::runtime_error("RecordStore: corrupt record file");
-        }
-    }
-
-    void append(const Record& record) {
-        std::ofstream out(path_, std::ios::binary | std::ios::app);
-        if (!out) {
-            throw std::runtime_error("RecordStore: cannot open " + path_);
-        }
-
-        const uint32_t count = static_cast<uint32_t>(record.values.size());
-        out.write(reinterpret_cast<const char*>(&count), sizeof(count));
-
-        for (const Value& value : record.values) {
-            writeValue(out, value);
-        }
-    }
-
-    void load() {
-        std::ifstream in(path_, std::ios::binary);
-        if (!in) {
+    void ensureFileExists() {
+        std::ifstream probe(path_, std::ios::binary);
+        if (probe.good()) {
             return;
         }
 
-        while (in.peek() != std::char_traits<char>::eof()) {
-            uint32_t count = 0;
-            in.read(reinterpret_cast<char*>(&count), sizeof(count));
-            if (!in) {
-                break;
+        std::ofstream create(path_, std::ios::binary);
+        if (!create) {
+            throw std::runtime_error("RecordStore: cannot create " + path_);
+        }
+    }
+
+    void writeCurrentPage() {
+        uint8_t buffer[PAGE_SIZE] = {0};
+        PageCodec::encodeRecords(currentPageRecords_, buffer, PAGE_SIZE);
+        pages_.writePage(currentPage_, buffer);
+    }
+
+    void load() {
+        const uint64_t pageTotal = pages_.pageCount();
+
+        std::vector<uint8_t> buffer(PAGE_SIZE, 0);
+        for (uint64_t page = 0; page < pageTotal; ++page) {
+            if (!pages_.readPage(page, buffer.data())) {
+                throw std::runtime_error("RecordStore: failed to read page");
             }
 
-            Record record;
-            record.values.reserve(count);
+            std::vector<Record> pageRecords =
+                PageCodec::decodeRecords(buffer.data(), PAGE_SIZE);
 
-            for (uint32_t i = 0; i < count; ++i) {
-                record.values.push_back(readValue(in));
+            for (Record& record : pageRecords) {
+                records_.push_back(std::move(record));
             }
 
-            records_.push_back(std::move(record));
+            // Keep the last page open so new rows keep filling it.
+            if (page + 1 == pageTotal) {
+                currentPage_ = page;
+                currentPageRecords_ = std::move(pageRecords);
+            }
         }
     }
 
     std::string path_;
+    PageManager pages_;
     std::vector<Record> records_;
+
+    PageID currentPage_ = 0;
+    std::vector<Record> currentPageRecords_;
 };

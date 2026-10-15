@@ -25,7 +25,9 @@
 namespace page_layout {
     constexpr uint8_t NODE_TYPE_LEAF = 1;
     constexpr uint8_t NODE_TYPE_INTERNAL = 2;
+    constexpr uint8_t NODE_TYPE_RECORD = 3;   // data page holding table rows
     constexpr size_t PAGE_HEADER_SIZE = 5;
+    constexpr size_t RECORD_PAGE_HEADER_SIZE = 5;
     constexpr size_t PAGE_KEY_SIZE = sizeof(uint64_t);
     constexpr size_t PAGE_REF_SIZE = sizeof(uint64_t);
 
@@ -39,6 +41,20 @@ namespace page_layout {
     inline void write_u16_le(uint8_t* ptr, uint16_t value) {
         ptr[0] = static_cast<uint8_t>(value & 0xFFu);
         ptr[1] = static_cast<uint8_t>((value >> 8) & 0xFFu);
+    }
+
+    inline uint32_t read_u32_le(const uint8_t* ptr) {
+        return static_cast<uint32_t>(ptr[0]) |
+               (static_cast<uint32_t>(ptr[1]) << 8) |
+               (static_cast<uint32_t>(ptr[2]) << 16) |
+               (static_cast<uint32_t>(ptr[3]) << 24);
+    }
+
+    inline void write_u32_le(uint8_t* ptr, uint32_t value) {
+        ptr[0] = static_cast<uint8_t>(value & 0xFFu);
+        ptr[1] = static_cast<uint8_t>((value >> 8) & 0xFFu);
+        ptr[2] = static_cast<uint8_t>((value >> 16) & 0xFFu);
+        ptr[3] = static_cast<uint8_t>((value >> 24) & 0xFFu);
     }
 
     inline uint64_t read_u64_le(const uint8_t* ptr) {

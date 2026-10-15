@@ -31,6 +31,8 @@ public:
 
     bool isOpen() const;
 
+    std::streamoff size();
+
     void read(
         uint64_t offset,
         uint8_t* buffer,
@@ -79,6 +81,14 @@ inline void FileManager::close() {
 
 inline bool FileManager::isOpen() const {
     return file.is_open();
+}
+
+inline std::streamoff FileManager::size() {
+    file.seekg(0, std::ios::end);
+    const std::streamoff total = file.tellg();
+    file.seekg(0, std::ios::beg);
+    file.clear();
+    return total;
 }
 
 inline void FileManager::read(

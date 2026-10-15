@@ -118,6 +118,51 @@ void testRecordStore() {
     std::remove(path.c_str());
 }
 
+// ------------------------------------------------- RecordStore pagination
+
+void testRecordStorePaging() {
+    std::cout << "\n== RecordStore pagination ==\n";
+
+    const std::string path = "record_store_paging_ut.bin";
+    std::remove(path.c_str());
+
+    const int total = 100;
+    const std::string filler(200, 'x');
+
+    {
+        RecordStore store(path);
+
+        for (int i = 0; i < total; ++i) {
+            store.insert({Value{int64_t{i}}, Value{filler}});
+        }
+
+        check(store.size() == static_cast<std::size_t>(total),
+              "all rows are stored in memory");
+        check(store.pageCount() > 1, "large batch spans multiple pages");
+    }
+
+    {
+        RecordStore reopened(path);
+        check(reopened.size() == static_cast<std::size_t>(total),
+              "all rows persist across pages");
+
+        bool intact = std::get<int64_t>(reopened.at(0).values[0]) == 0 &&
+                      std::get<int64_t>(reopened.at(total - 1).values[0]) == total - 1;
+        check(intact, "first and last rows survive the page boundary");
+
+        check(std::get<std::string>(reopened.at(50).values[1]) == filler,
+              "string value survives the page boundary");
+
+        // The last page is reused rather than starting a fresh page.
+        const uint64_t pagesBefore = reopened.pageCount();
+        reopened.insert({Value{int64_t{total}}, Value{filler}});
+        check(reopened.pageCount() == pagesBefore,
+              "appending reuses the last page when it still has room");
+    }
+
+    std::remove(path.c_str());
+}
+
 // ------------------------------------------------------------- TableWrapper
 
 void testTableWrapper() {
@@ -199,6 +244,7 @@ void testBinPlusTreeCopy() {
 int main() {
     testTableSchema();
     testRecordStore();
+    testRecordStorePaging();
     testTableWrapper();
     testBinPlusTreeCopy();
 

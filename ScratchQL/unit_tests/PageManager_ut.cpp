@@ -1,3 +1,8 @@
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+
 #include "PageManager.h"
 
 #include <iostream>
@@ -28,25 +33,34 @@ namespace
 	void runSampleWithPageOperations(const std::string& label)
 	{
 		std::cout << "[sample] " << label << std::endl;
-		PageManager pageManager;
+
+		const std::string filename = "pagemgr_sample.bin";
+		std::remove(filename.c_str());
+
+		PageManager pageManager(filename, std::ios::out | std::ios::in | std::ios::binary);
 		std::cout << "[OK] PageManager creation" << std::endl;
-		
+
 		// Create a buffer to hold page data
 		uint8_t buffer[PAGE_SIZE] = {1, 2, 3, 4, 5}; // Example data
-		
+
 		// Write the buffer to a page
 		PageID pageId = 1; // Example page ID
 		pageManager.writePage(pageId, buffer);
-		
+
 		std::cout << "[OK] Page written" << std::endl;
-		
-		// check if the page was written successfully
-		if (pageManager.readPage(pageId, buffer)){
+
+		// Read it back into a separate buffer and compare
+		uint8_t readBuffer[PAGE_SIZE] = {0};
+		if (pageManager.readPage(pageId, readBuffer) &&
+			std::memcmp(buffer, readBuffer, PAGE_SIZE) == 0) {
 			std::cout << "[OK] Page read successfully" << std::endl;
 		}else{
 			std::cerr << "[ERROR] Failed to read page" << std::endl;
 		}
-		
+
+		pageManager.close();
+		std::remove(filename.c_str());
+
 		std::cout << "[OK] Page operations completed" << std::endl;
 	} // namespace
 	
