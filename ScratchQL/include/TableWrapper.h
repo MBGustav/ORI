@@ -70,6 +70,17 @@ public:
         return recordStore_;
     }
 
+    void show_metadata() const {
+        std::cout << "TableWrapper: schema with " << schema_.columns.size() << " columns\n";
+        for (std::size_t columnId = 0; columnId < schema_.columns.size(); ++columnId) {
+            const Column& column = schema_.columns[columnId];
+            std::cout << "  Column " << columnId
+                      << ": name    = " << column.name
+                      << ", type    = " << static_cast<int>(column.type)
+                      << ", indexed =" << (column.indexed ? "true" : "false")
+                      << "\n";
+        }
+    }
 private:
     // Rebuilds the indexes from the rows already persisted in the RecordStore,
     // so a reopened table has indexes that reflect the on-disk data.
@@ -88,4 +99,6 @@ private:
             }
         }
     }
+
+    
 };
