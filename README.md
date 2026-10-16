@@ -288,6 +288,8 @@ g++ -std=c++17 -I ScratchQL/include \
 | ❌ | `DELETE` / `UPDATE` (requires logical and physical row removal) |
 | ❌ | Composite predicates (`AND`/`OR`) and more types (Float, Date, Boolean) |
 | ❌ | Explicit primary/secondary keys and efficient non-indexed search |
+| ❌ | GUI to visualize and interact with the database |
+
 
 ---
 
