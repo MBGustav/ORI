@@ -1,0 +1,3 @@
+table utilisateur
+column id INTEGER
+column nom VARCHAR

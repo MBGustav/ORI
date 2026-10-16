@@ -1,0 +1,4 @@
+table people
+column id INTEGER INDEXED
+column nome VARCHAR
+column idade INTEGER INDEXED

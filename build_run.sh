@@ -1,4 +1,4 @@
 
 
 mkdir -p ./build ; cd ./build;
-cmake .. && make && cd ../ && ./interface
+cmake .. && make && cd ../ && ./interpreter

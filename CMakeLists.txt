@@ -22,19 +22,23 @@ enable_testing()
 # Include ScratchQL -- cmakelist
 add_subdirectory(ScratchQL)
 
-# Add Interpreter /*TODO*/
-# add_subdirectory(Interpreter)
-# include_directories(Interpreter/include)
-add_executable(interface "cli-terface.cpp")
+# Add Interpreter
+add_subdirectory(Interpreter)
+include_directories(Interpreter/include)
 
-target_link_libraries(interface PRIVATE
-    ScratchQL_lib
-)
-
-set_target_properties(interface
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-)
+# cli-terface.cpp is legacy: it still includes the removed "SimpleTableHandler.h"
+# and does not compile. Kept for reference but disabled until it is ported to the
+# new table/interpreter API.
+# add_executable(interface "cli-terface.cpp")
+#
+# target_link_libraries(interface PRIVATE
+#     ScratchQL_lib
+# )
+#
+# set_target_properties(interface
+#     PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+#     "${CMAKE_CURRENT_SOURCE_DIR}"
+# )
 
 
 

@@ -12,12 +12,10 @@ include_directories(unit_tests)
 
 
 # Integrate all .cpp files
+# NOTE: the storage layer is mostly header-only now; only the files that
+# actually exist are listed here. (DataInterface/Float/Int/String/Date handler
+# sources were removed.)
 set(SQL_SOURCES 
-"src/DataInterface.cpp"
-"src/DateHandler.cpp"
-"src/FloatHandler.cpp"
-"src/IntHandler.cpp"
-"src/StringHandler.cpp"
 "src/FileHandler.cpp"
 "src/BinPlusTree.cpp"
 )
