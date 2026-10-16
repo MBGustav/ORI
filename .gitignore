@@ -43,7 +43,7 @@
 **/.clangd
 **/.ccls-cache/**
 **/.cache/**
-
+    
 ## Package managers / dependency caches
 **/vcpkg_installed/**
 **/conanbuildinfo.*
@@ -56,5 +56,6 @@
 **/archived/**
 **/unit_test
 **/interface
+**/interpreter
 **/main
 **/*.*bin
